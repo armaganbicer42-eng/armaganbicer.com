@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>armagan</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <main class="hero">
+    <video class="hero__bg" autoplay muted loop playsinline>
+      <source src="assets/img/banner_video_updated.mp4" type="video/mp4" />
+    </video>
+    <div class="hero__overlay"></div>
+
+    <img class="hero__logo" src="assets/img/logo.png" alt="Armagan B signature logo" />
+
+    <div class="lang-toggle">
+      <button type="button" data-lang="en">English</button>
+      <span>/</span>
+      <button type="button" data-lang="tr">Türkçe</button>
+    </div>
+
+    <div class="hero__center">
+      <h1 class="hero__name">armagan</h1>
+      <div class="hero__tags">
+        <span class="hero__tag" data-i18n="tag1">Community<br />Builder</span>
+        <span class="hero__tag" data-i18n="tag2">Creative<br />Head</span>
+      </div>
+    </div>
+
+    <div class="hero__intro">
+      <p data-i18n="bio1">
+        I'm Armağan. I make video series about the random thoughts and things I get stuck on,
+        and somehow that's how I've ended up existing on the internet.
+      </p>
+      <p data-i18n="bio2">
+        I guess you could say I'm somewhere between a creative and an entrepreneur. The things
+        I work on tend to change all the time, so if you run into me at different points in
+        life, I'm probably obsessing over something completely different each time.
+      </p>
+      <p data-i18n="bio3">
+        Right now, I'm running NotWork, a networking event, and still posting my video series on
+        <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener">Instagram</a>
+        whenever another thought decides to take up space in my head.
+      </p>
+      <p class="hero__more">
+        <a href="updates.html" data-i18n="more">See what I've been up to &rarr;</a>
+      </p>
+    </div>
+  </main>
+
+  <section class="showcase">
+    <div class="showcase__col showcase__col--shop">
+      <h2 class="showcase__heading" data-i18n="shopHeading">shop</h2>
+      <div class="showcase__products">
+        <div class="showcase__product">
+          <img class="showcase__swatch" src="assets/img/item1.png" alt="Wood, glass, metal organizer board" />
+          <p class="showcase__product-name" data-i18n="item1Name">Wood, Glass, Metal Organizer Board</p>
+          <p class="showcase__product-price">$00</p>
+        </div>
+        <div class="showcase__product">
+          <img class="showcase__swatch" src="assets/img/item2.png" alt="This Is Fine (F*ck) Pillow" />
+          <p class="showcase__product-name" data-i18n="item2Name">This Is Fine (F*ck) Pillow</p>
+          <p class="showcase__product-price">$00</p>
+        </div>
+        <div class="showcase__product">
+          <img class="showcase__swatch" src="assets/img/item3.png" alt="Mini Tote Bag" />
+          <p class="showcase__product-name" data-i18n="item3Name">Mini Tote Bag</p>
+          <p class="showcase__product-price">$00</p>
+        </div>
+      </div>
+      <a class="showcase__cta" href="#" target="_blank" rel="noopener" data-i18n="shopCta">visit the shop &rarr;</a>
+    </div>
+
+    <div class="showcase__col showcase__col--contact">
+      <h2 class="showcase__heading" data-i18n="collabHeading">let's collaborate</h2>
+      <p class="showcase__copy" data-i18n="collabCopy">For brand collabs, events, or anything else &mdash; reach out.</p>
+      <a class="showcase__cta" href="mailto:hello@armagan.com" data-i18n="collabCta">get in touch &rarr;</a>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <p data-i18n="footer">made with curiosity, by armagan</p>
+    <div class="site-footer__social">
+      <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="2" y="2" width="20" height="20" rx="5" />
+          <circle cx="12" cy="12" r="5" />
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      </a>
+    </div>
+  </footer>
+
+  <script src="assets/js/i18n.js"></script>
+</body>
+</html>
