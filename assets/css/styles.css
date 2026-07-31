@@ -425,6 +425,12 @@ body.updates-page {
   text-decoration: underline;
 }
 
+.showcase__cta--soon {
+  text-decoration: none;
+  opacity: 0.6;
+  cursor: default;
+}
+
 @media (max-width: 900px) {
   .showcase {
     grid-template-columns: 1fr;
