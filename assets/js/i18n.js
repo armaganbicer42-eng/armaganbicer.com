@@ -26,7 +26,10 @@
       u3Desc: 'Where I share ADHD-friendly organization tricks to make everyday life easier.',
       u4Tag: '&#10038; origin series',
       u4Desc: 'My origin series, where I tell the stories in my head in a visually heavy, highly-edited format &mdash; playing with the "why" behind everyday actions in an imaginative way.',
-      updatesMore: 'more projects &amp; experiments being added soon'
+      updatesMore: 'more projects &amp; experiments being added soon',
+      productBack: '&larr; back to shop',
+      lampTitle: 'Chill Wall Lamp',
+      lampDesc: 'A soft wall lamp with a hand-drawn "chill" illustration &mdash; warm light for the moments you\'re doing absolutely nothing, on purpose.'
     },
     tr: {
       tag1: 'Topluluk<br />Kurucusu',
@@ -54,7 +57,10 @@
       u3Desc: 'Günlük hayatı kolaylaştırmak için DEHB dostu düzenleme fikirlerini paylaştığım seri.',
       u4Tag: '&#10038; köken serisi',
       u4Desc: 'Kafamdaki hikayeleri görsel açıdan yoğun, oldukça kurgulanmış bir formatta anlattığım köken serim &mdash; günlük eylemlerin arkasındaki "neden"i hayal gücüyle irdeliyorum.',
-      updatesMore: 'yeni projeler ve denemeler yakında ekleniyor'
+      updatesMore: 'yeni projeler ve denemeler yakında ekleniyor',
+      productBack: '&larr; mağazaya dön',
+      lampTitle: 'Chill Duvar Lambası',
+      lampDesc: 'Elle çizilmiş "chill" illüstrasyonlu, yumuşak ışıklı bir duvar lambası &mdash; bilinçli olarak hiçbir şey yapmadığın anlar için.'
     }
   };
 
