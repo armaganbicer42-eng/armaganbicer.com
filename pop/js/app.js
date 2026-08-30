@@ -228,10 +228,16 @@
     var url = null;
     var entryIll = ill;
     if (task.image) {
-      url = URL.createObjectURL(task.image);
       var img = document.createElement('img');
       img.className = 'bubble__img';
-      img.src = url;
+      // images are stored as data-URL strings (Blob-in-IndexedDB is broken on
+      // iOS Safari); tolerate an old Blob record too
+      if (typeof task.image === 'string') {
+        img.src = task.image;
+      } else {
+        url = URL.createObjectURL(task.image);
+        img.src = url;
+      }
       img.alt = task.text || '';
       el.appendChild(img);
     }
@@ -471,37 +477,57 @@
   }
   document.addEventListener('keydown', onDraftKey);
 
+  // Turn a picked file into a small JPEG data-URL string. Data URLs (strings)
+  // round-trip through IndexedDB reliably; Blobs do NOT on iOS Safari, which is
+  // why the photo vanished on mobile. Downscaling also handles HEIC and keeps
+  // storage tiny.
+  function fileToDataUrl(file, cb) {
+    var reader = new FileReader();
+    reader.onerror = function () { cb(null); };
+    reader.onload = function () {
+      var raw = reader.result;                 // data:...;base64,...
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var max = 1000;
+          var s = Math.min(1, max / Math.max(img.width, img.height));
+          var w = Math.max(1, Math.round(img.width * s));
+          var h = Math.max(1, Math.round(img.height * s));
+          var c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          cb(c.toDataURL('image/jpeg', 0.82));
+        } catch (e) { cb(raw); }               // canvas failed -> keep the original
+      };
+      img.onerror = function () { cb(raw); };  // browser can't decode it -> store raw
+      img.src = raw;
+    };
+    reader.readAsDataURL(file);
+  }
+
   photoInput.addEventListener('change', function () {
     pickingPhoto = false;
     var file = photoInput.files && photoInput.files[0];
     if (!file || !draft) { photoInput.value = ''; return; }
     var d = draft;
-    var type = file.type || 'image/jpeg';
 
-    // Read the bytes into a Blob we own now. On iOS the File reference can go
-    // stale once the input is reset, which is why the photo "disappeared".
-    var reader = new FileReader();
-    reader.onload = function () {
+    fileToDataUrl(file, function (dataUrl) {
       photoInput.value = '';
-      if (!draft || draft !== d) return;
-      var blob = new Blob([reader.result], { type: type });
-      d.image = blob;
+      if (!draft || draft !== d || !dataUrl) return;
+      d.image = dataUrl;                       // a string
       var bg = d.el.querySelector('.bubble__img');
       if (!bg) {
         bg = document.createElement('img');
         bg.className = 'bubble__img';
         d.el.appendChild(bg);
       }
-      if (bg.src) URL.revokeObjectURL(bg.src);
-      bg.src = URL.createObjectURL(blob);
+      bg.src = dataUrl;
       d.dots.style.display = 'none';
       d.done.hidden = false;
       d.editor.focus();
       setTimeout(function () { if (draft) draft.editor.focus(); }, 120);
       onDraftInput();
-    };
-    reader.onerror = function () { photoInput.value = ''; };
-    reader.readAsArrayBuffer(file);
+    });
   });
 
   // returning from a cancelled photo picker: clear the guard
