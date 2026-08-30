@@ -178,7 +178,7 @@
     root.id = 'profilePanel';
     root.innerHTML =
       '<div class="pp-bar">' +
-        '<strong class="pp-name">' + esc(T.name) + '</strong>' +
+        '<img class="pp-logo" src="/pop/assets/logo.svg?v=54" alt="' + esc(T.name) + '">' +
         '<button type="button" class="pp-close">' + esc(T.close) + '</button>' +
       '</div>' +
       '<div class="pp-scroll">' +
@@ -191,6 +191,15 @@
     document.body.appendChild(root);
     bodyEl = root.querySelector('.pp-body');
     root.querySelector('.pp-close').addEventListener('click', close);
+
+    // if logo.svg isn't there, fall back to the plain name
+    var logo = root.querySelector('.pp-logo');
+    logo.addEventListener('error', function () {
+      var name = document.createElement('strong');
+      name.className = 'pp-name';
+      name.textContent = T.name;
+      logo.replaceWith(name);
+    });
   }
 
   function open() {
@@ -338,9 +347,6 @@
     h += '<label data-when="count"><input type="number" name="count" min="1" value="' +
       (r.count || 10) + '"> ' + esc(T.times) + '</label>';
 
-    h += '<label>' + esc(T.notes) +
-      '<textarea name="notes" rows="2">' + esc(ev ? ev.notes : '') + '</textarea></label>';
-
     h += '<div class="ev-actions">' +
       '<button type="submit" class="btn">' + esc(T.save) + '</button>' +
       '<button type="button" class="btn btn--ghost" data-act="cancel">' + esc(T.cancel) + '</button>' +
@@ -384,7 +390,6 @@
     }
     return {
       title: title,
-      notes: val('notes').trim(),
       start: start,
       time: allday ? null : (val('time') || null),
       allDay: allday,
