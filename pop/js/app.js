@@ -70,17 +70,32 @@
   // ---- boot --------------------------------------------------------------------
 
   // first-ever visit: drop in a starter set of bubbles
-  function seedTasks() {
-    var tr = appEl.classList.contains('lang-tr');
-    var howto = tr ? [
-      'Saçtaki düğmeyle Ekle ve Patlat modu arasında geç',
-      'Ekle modunda boş yere dokun, görev baloncuğu düşsün',
-      'Patlat modunda bitirdiğin göreve dokun, patlasın'
-    ] : [
+  // the 3 how-it-works bubbles, per language, in slot order
+  var HOWTO = {
+    en: [
       'Flip the hair switch to move between Add and Pop',
       'In Add mode, tap the empty space to drop a task',
       'In Pop mode, tap a task you have done to pop it'
-    ];
+    ],
+    tr: [
+      'Saçtaki düğmeyle Ekle ve Patlat modu arasında geç',
+      'Ekle modunda boş yere dokun, görev baloncuğu düşsün',
+      'Patlat modunda bitirdiğin göreve dokun, patlasın'
+    ]
+  };
+
+  function detectLang() {
+    var forced = (location.search.match(/[?&]lang=(tr|en)\b/) || [])[1];
+    if (forced) return forced;
+    var list = (navigator.languages && navigator.languages.length)
+      ? navigator.languages : [navigator.language || 'en'];
+    return (list[0] || 'en').toLowerCase().indexOf('tr') === 0 ? 'tr' : 'en';
+  }
+  var uiLang = detectLang();
+
+  function seedTasks() {
+    var tr = uiLang === 'tr';
+    var howto = HOWTO[uiLang];
     var pool = tr
       ? ['annemi ara', 'markete git', '10 dk yürü', 'e-postalara bak', 'randevu al']
       : ['call mom', 'buy groceries', '10 min walk', 'reply to emails', 'book a dentist'];
@@ -93,9 +108,9 @@
       { text: '💧 su iç', r: 52 },
       { text: pool[a], r: 58 },
       { text: pool[b], r: 58 },
-      { text: howto[0], r: 82 },
-      { text: howto[1], r: 82 },
-      { text: howto[2], r: 82 }
+      { text: howto[0], r: 82, kind: 'howto', slot: 0 },
+      { text: howto[1], r: 82, kind: 'howto', slot: 1 },
+      { text: howto[2], r: 82, kind: 'howto', slot: 2 }
     ];
 
     var chain = Promise.resolve();
@@ -105,6 +120,8 @@
         return Store.addTask({
           text: s.text,
           r: s.r,
+          kind: s.kind,
+          slot: s.slot,
           variant: ((addCount - 1) % 3) + 1,
           seq: addCount,
           x: s.r + Math.random() * Math.max(1, boxW - s.r * 2),
@@ -118,7 +135,7 @@
   }
 
   function start() {
-    applyLang((navigator.language || 'en').toLowerCase().indexOf('tr') === 0 ? 'tr' : 'en');
+    applyLang(uiLang);
     layoutArena();
     Store.init()
       .then(Store.getTasks)
@@ -131,6 +148,12 @@
       .then(function (tasks) {
         tasks.forEach(function (t) {
           if (typeof t.variant === 'number') addCount = Math.max(addCount, t.seq || 0);
+          // keep the how-it-works bubbles in the current browser language
+          if (t.kind === 'howto' && HOWTO[uiLang] && HOWTO[uiLang][t.slot] &&
+              t.text !== HOWTO[uiLang][t.slot]) {
+            t.text = HOWTO[uiLang][t.slot];
+            Store.updateTask(t.id, { text: t.text });
+          }
           spawnBubble(t, { drop: false });
         });
         requestAnimationFrame(renderLoop);

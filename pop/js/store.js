@@ -78,6 +78,8 @@ window.Store = (function () {
         r: typeof data.r === 'number' ? data.r : 56,
         variant: typeof data.variant === 'number' ? data.variant : 1,
         seq: typeof data.seq === 'number' ? data.seq : 0,
+        kind: data.kind || null,
+        slot: typeof data.slot === 'number' ? data.slot : null,
         done: false,
         createdAt: Date.now()
       };
