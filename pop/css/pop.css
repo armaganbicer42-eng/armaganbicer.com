@@ -341,7 +341,10 @@ html, body {
   display: none;                 /* only in Pop mode, and only with a pop to undo */
   -webkit-tap-highlight-color: transparent;
 }
-.mode-pop.has-undo .undo-btn { display: block; }
+.mode-pop.has-undo .undo-btn {
+  display: block;
+  animation: bubble-vibe .16s linear infinite;   /* jitters like the poppable bubbles */
+}
 .undo-btn:active { transform: scale(.94); }
 
 .undo-btn__svg {
@@ -359,5 +362,6 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .bubble__typing i { animation: none; }
   .mode-pop .bubble { animation: none; }
+  .mode-pop.has-undo .undo-btn { animation: none; }
   .pop-burst { transition-duration: 90ms; }
 }
