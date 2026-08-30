@@ -474,22 +474,34 @@
   photoInput.addEventListener('change', function () {
     pickingPhoto = false;
     var file = photoInput.files && photoInput.files[0];
-    photoInput.value = '';
-    if (!file || !draft) return;
-    draft.image = file;
-    var url = URL.createObjectURL(file);
-    var bg = draft.el.querySelector('.bubble__img');
-    if (!bg) {
-      bg = document.createElement('img');
-      bg.className = 'bubble__img';
-      draft.el.appendChild(bg);
-    }
-    bg.src = url;
-    draft.dots.style.display = 'none';
-    // focus() right after a file dialog is often ignored; retry on the next tick
-    draft.editor.focus();
-    setTimeout(function () { if (draft) draft.editor.focus(); }, 120);
-    onDraftInput();
+    if (!file || !draft) { photoInput.value = ''; return; }
+    var d = draft;
+    var type = file.type || 'image/jpeg';
+
+    // Read the bytes into a Blob we own now. On iOS the File reference can go
+    // stale once the input is reset, which is why the photo "disappeared".
+    var reader = new FileReader();
+    reader.onload = function () {
+      photoInput.value = '';
+      if (!draft || draft !== d) return;
+      var blob = new Blob([reader.result], { type: type });
+      d.image = blob;
+      var bg = d.el.querySelector('.bubble__img');
+      if (!bg) {
+        bg = document.createElement('img');
+        bg.className = 'bubble__img';
+        d.el.appendChild(bg);
+      }
+      if (bg.src) URL.revokeObjectURL(bg.src);
+      bg.src = URL.createObjectURL(blob);
+      d.dots.style.display = 'none';
+      d.done.hidden = false;
+      d.editor.focus();
+      setTimeout(function () { if (draft) draft.editor.focus(); }, 120);
+      onDraftInput();
+    };
+    reader.onerror = function () { photoInput.value = ''; };
+    reader.readAsArrayBuffer(file);
   });
 
   // returning from a cancelled photo picker: clear the guard
