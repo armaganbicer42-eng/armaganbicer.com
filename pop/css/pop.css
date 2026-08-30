@@ -29,17 +29,17 @@ html, body {
   position: fixed;
   inset: 0;
   display: grid;
-  place-items: start center;   /* sit near the top so the drawn shoulders show */
+  place-items: end center;    /* anchor to the bottom: the guy sits just above
+                                 the browser controls */
   background: #fff;
 }
 
-/* ---- stage: fills the (mobile) window ---- */
+/* ---- stage: fills the window; the guy's feet land at the bottom edge ---- */
 
 .stage {
   position: relative;
   width: min(100vw, 560px);
-  height: 88svh;              /* leaves room below for the shoulders */
-  margin-top: 1svh;
+  height: 100svh;
   /* frame inner edges as a fraction of the stage — the frame stretches with
      the stage so these stay put: x36/x1043 of 1080, y353/y1645 of 1920 */
   --arena-l: 3.3%;
