@@ -10,8 +10,9 @@
  */
 window.Store = (function () {
   var DB_NAME = 'pop';
-  var DB_VERSION = 1;
+  var DB_VERSION = 2;
   var STORE = 'tasks';
+  var EVENTS = 'events';        // calendar reminders (single or recurring)
   var dbPromise = null;
 
   function open() {
@@ -23,6 +24,9 @@ window.Store = (function () {
         if (!db.objectStoreNames.contains(STORE)) {
           db.createObjectStore(STORE, { keyPath: 'id' });
         }
+        if (!db.objectStoreNames.contains(EVENTS)) {
+          db.createObjectStore(EVENTS, { keyPath: 'id' });
+        }
       };
       req.onsuccess = function () { resolve(req.result); };
       req.onerror = function () { reject(req.error); };
@@ -30,9 +34,10 @@ window.Store = (function () {
     return dbPromise;
   }
 
-  function tx(mode) {
+  function tx(mode, name) {
+    name = name || STORE;
     return open().then(function (db) {
-      return db.transaction(STORE, mode).objectStore(STORE);
+      return db.transaction(name, mode).objectStore(name);
     });
   }
 
@@ -45,6 +50,23 @@ window.Store = (function () {
 
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  /** Coerce whatever the UI passes into a well-formed recurrence rule. */
+  function normalizeRecur(r) {
+    r = r || {};
+    var freq = ['none', 'daily', 'weekly', 'monthly', 'yearly'].indexOf(r.freq) >= 0
+      ? r.freq : 'none';
+    var count = parseInt(r.count, 10);
+    return {
+      freq: freq,
+      interval: Math.max(1, parseInt(r.interval, 10) || 1),
+      weekdays: Array.isArray(r.weekdays)
+        ? r.weekdays.map(Number).filter(function (n) { return n >= 0 && n <= 6; })
+        : [],
+      until: r.until || null,                 // 'YYYY-MM-DD'
+      count: count > 0 ? count : null
+    };
   }
 
   return {
@@ -70,7 +92,7 @@ window.Store = (function () {
     addTask: function (data) {
       data = data || {};
       var task = {
-        id: uid(),
+        id: data.id || uid(),
         text: data.text || '',
         image: data.image || null,
         x: typeof data.x === 'number' ? data.x : null,
@@ -80,6 +102,7 @@ window.Store = (function () {
         seq: typeof data.seq === 'number' ? data.seq : 0,
         kind: data.kind || null,
         slot: typeof data.slot === 'number' ? data.slot : null,
+        evKey: data.evKey || null,      // set when a bubble is a calendar occurrence
         done: false,
         createdAt: Date.now()
       };
@@ -106,10 +129,67 @@ window.Store = (function () {
       });
     },
 
-    /** Wipe everything (dev helper). */
+    /** Wipe everything — tasks and calendar events. */
     clear: function () {
-      return tx('readwrite').then(function (os) {
-        return reqToPromise(os.clear());
+      return Promise.all([
+        tx('readwrite', STORE).then(function (os) { return reqToPromise(os.clear()); }),
+        tx('readwrite', EVENTS).then(function (os) { return reqToPromise(os.clear()); })
+      ]);
+    },
+
+    // ---- calendar events (single or recurring reminders) --------------------
+
+    /** All events, earliest start first. */
+    getEvents: function () {
+      return tx('readonly', EVENTS).then(function (os) {
+        return reqToPromise(os.getAll());
+      }).then(function (rows) {
+        return (rows || []).sort(function (a, b) {
+          return String(a.start || '').localeCompare(String(b.start || ''));
+        });
+      });
+    },
+
+    /**
+     * Add an event.
+     * @param {{title?, notes?, start?, time?, allDay?, recur?}} data
+     *        start/until are 'YYYY-MM-DD', time is 'HH:MM' or null.
+     * @returns {Promise<object>} the stored event
+     */
+    addEvent: function (data) {
+      data = data || {};
+      var ev = {
+        id: data.id || uid(),
+        title: (data.title || '').trim(),
+        notes: (data.notes || '').trim(),
+        start: data.start || null,
+        time: data.time || null,
+        allDay: data.time ? false : data.allDay !== false,
+        recur: normalizeRecur(data.recur),
+        createdAt: Date.now()
+      };
+      return tx('readwrite', EVENTS).then(function (os) {
+        return reqToPromise(os.put(ev));
+      }).then(function () { return ev; });
+    },
+
+    /** Shallow-merge a patch into one event (recur is re-normalized). */
+    updateEvent: function (id, patch) {
+      return tx('readwrite', EVENTS).then(function (os) {
+        return reqToPromise(os.get(id)).then(function (row) {
+          if (!row) return null;
+          Object.keys(patch).forEach(function (k) { row[k] = patch[k]; });
+          if (patch.recur) row.recur = normalizeRecur(patch.recur);
+          row.allDay = row.time ? false : row.allDay !== false;
+          return reqToPromise(os.put(row)).then(function () { return row; });
+        });
+      });
+    },
+
+    /** Remove one event for good. */
+    deleteEvent: function (id) {
+      return tx('readwrite', EVENTS).then(function (os) {
+        return reqToPromise(os['delete'](id));
       });
     }
   };

@@ -165,6 +165,7 @@
           spawnBubble(t, { drop: false });
         });
         requestAnimationFrame(renderLoop);
+        syncEventBubbles();          // today's calendar reminders -> bubbles
       })
       .catch(function (err) { console.error('POP failed to start', err); });
   }
@@ -322,10 +323,13 @@
     var t = entry.task;
     undoStack.push({
       text: t.text, image: t.image, r: r, x: cx, y: cy,
-      variant: t.variant, seq: t.seq, kind: t.kind, slot: t.slot
+      variant: t.variant, seq: t.seq, kind: t.kind, slot: t.slot, evKey: t.evKey
     });
     if (undoStack.length > UNDO_MAX) undoStack.shift();
     refreshUndo();
+
+    // a popped calendar reminder should stay gone for the rest of the day
+    if (t.evKey) evDone.add(t.evKey);
 
     // the burst: starts as a dot at the bubble centre, grows to its rim
     var art = window.POP_BURST || { vb: '0 0 100 100', paths: '' };
@@ -602,9 +606,11 @@
       var snap = undoStack.pop();
       refreshUndo();
       if (!snap) return;
+      if (snap.evKey) evDone.remove(snap.evKey);
       Store.addTask({
         text: snap.text, image: snap.image, x: snap.x, y: snap.y, r: snap.r,
-        variant: snap.variant, seq: snap.seq, kind: snap.kind, slot: snap.slot
+        variant: snap.variant, seq: snap.seq, kind: snap.kind, slot: snap.slot,
+        evKey: snap.evKey
       }).then(function (task) {
         var entry = spawnBubble(task, { drop: false });
         if (entry.body) entry.body.vy = 1;
@@ -668,8 +674,56 @@
   }
   window.addEventListener('beforeunload', savePositions);
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) sim.wake();
+    if (!document.hidden) { sim.wake(); syncEventBubbles(); }
   });
+
+  // ---- calendar reminders -> bubbles ----------------------------------------
+
+  // keys of reminders popped today, so they don't respawn until tomorrow
+  var evDone = (function () {
+    var KEY = 'patlat.evdone';
+    function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+    var st;
+    try { st = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { st = null; }
+    if (!st || st.d !== today()) st = { d: today(), keys: [] };
+    function roll() { if (st.d !== today()) st = { d: today(), keys: [] }; }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+    save();
+    return {
+      has: function (k) { roll(); return st.keys.indexOf(k) >= 0; },
+      add: function (k) { roll(); if (st.keys.indexOf(k) < 0) { st.keys.push(k); save(); } },
+      remove: function (k) { roll(); var i = st.keys.indexOf(k); if (i >= 0) { st.keys.splice(i, 1); save(); } }
+    };
+  })();
+
+  function syncEventBubbles() {
+    if (!window.Store || !Store.getEvents || !window.PatlatCal) return;
+    Store.getEvents().then(function (evs) {
+      var now = new Date();
+      var seen = {};
+      bubbles.forEach(function (b) { if (b.task && b.task.evKey) seen[b.task.evKey] = true; });
+      (evs || []).forEach(function (ev) {
+        window.PatlatCal.expandOccurrences(ev, now, now).forEach(function (dayStr) {
+          var key = 'ev:' + ev.id + ':' + dayStr;
+          if (seen[key] || evDone.has(key)) return;
+          seen[key] = true;
+          var label = (ev.time ? ev.time + '  ' : '') + (ev.title || 'reminder');
+          addCount += 1;
+          Store.addTask({
+            text: label, kind: 'event', evKey: key,
+            x: boxW / 2, y: 30,
+            r: Math.max(radiusFor({ text: label }), MIN_R),
+            variant: ((addCount - 1) % 3) + 1, seq: addCount
+          }).then(function (task) {
+            var entry = spawnBubble(task, { drop: true });
+            if (entry && entry.body) entry.body.vy = 1.4;
+            sim.wake();
+          });
+        });
+      });
+    })['catch'](function () {});
+  }
+  window.addEventListener('pop:events-changed', syncEventBubbles);
 
   var resizeT = 0;
   window.addEventListener('resize', function () {
