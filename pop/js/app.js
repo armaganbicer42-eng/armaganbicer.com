@@ -116,14 +116,14 @@
     var b = (a + 1 + Math.floor(Math.random() * (pool.length - 1))) % pool.length;
 
     var seeds = [
-      { text: '💧 su iç', r: 52 },
-      { text: '💧 su iç', r: 52 },
-      { text: '💧 su iç', r: 52 },
-      { text: pool[a], r: 58 },
-      { text: pool[b], r: 58 },
-      { text: howto[0], r: 82, kind: 'howto', slot: 0 },
-      { text: howto[1], r: 82, kind: 'howto', slot: 1 },
-      { text: howto[2], r: 82, kind: 'howto', slot: 2 }
+      { text: '💧 su iç', r: 46 },
+      { text: '💧 su iç', r: 46 },
+      { text: '💧 su iç', r: 46 },
+      { text: pool[a], r: 50 },
+      { text: pool[b], r: 50 },
+      { text: howto[0], r: 70, kind: 'howto', slot: 0 },
+      { text: howto[1], r: 70, kind: 'howto', slot: 1 },
+      { text: howto[2], r: 70, kind: 'howto', slot: 2 }
     ];
 
     var chain = Promise.resolve();
@@ -193,11 +193,11 @@
   // ---- sizing --------------------------------------------------------------------
 
   function radiusFor(task) {
-    var base = task.image ? 56 : 34;
-    var grow = Math.min((task.text || '').length * 1.5, 66);
+    var base = task.image ? 50 : 30;
+    var grow = Math.min((task.text || '').length * 1.35, 54);
     return Math.round(base + grow);
   }
-  var MIN_R = 46;
+  var MIN_R = 40;
   var SVGNS = 'http://www.w3.org/2000/svg';
 
   // Build the ring as a bare <svg><path/> with a tight viewBox and

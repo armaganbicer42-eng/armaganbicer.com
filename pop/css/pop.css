@@ -123,9 +123,9 @@ html, body {
 
 .bubble__ill {
   position: absolute;
-  inset: 5%;                      /* ring sits inside the collision circle, so */
-  width: 90%;                     /* rolling never makes rings interlace */
-  height: 90%;
+  inset: 1%;                      /* ring nearly fills the collision circle, so */
+  width: 98%;                     /* two colliding bubbles' rings actually touch */
+  height: 98%;
   pointer-events: none;
   overflow: visible;
   transform-origin: 50% 50%;
