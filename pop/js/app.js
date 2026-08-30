@@ -15,6 +15,9 @@
   var hairHit = document.getElementById('hairHit');
   var profileBtn = document.getElementById('profileBtn');
   var undoBtn = document.getElementById('undoBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var resetYes = document.getElementById('resetYes');
+  var resetNo = document.getElementById('resetNo');
   var appEl = document.querySelector('.pop-app');
 
   var undoStack = [];          // snapshots of popped tasks, newest last
@@ -610,8 +613,34 @@
     });
   }
 
+  // ---- reset: wipe saved data, with a tick / cross confirmation --------------
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function () {
+      appEl.classList.add('confirm-reset');
+    });
+  }
+  if (resetNo) {
+    resetNo.addEventListener('click', function () {
+      appEl.classList.remove('confirm-reset');
+    });
+  }
+  if (resetYes) {
+    resetYes.addEventListener('click', function () {
+      resetYes.disabled = true;
+      Promise.resolve()
+        .then(function () { return Store.clear(); })
+        .catch(function () {})
+        .then(function () {
+          try { localStorage.removeItem('pop.seeded'); } catch (e) {}
+          location.reload();
+        });
+    });
+  }
+
   function setMode(next) {
     if (draft) commitDraft();
+    appEl.classList.remove('confirm-reset');   // drop any pending reset prompt
     mode = next;
     var isPop = mode === 'pop';
     appEl.classList.toggle('mode-pop', isPop);
