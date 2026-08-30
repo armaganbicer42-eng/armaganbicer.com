@@ -325,6 +325,37 @@ html, body {
 .profile-btn .ink { fill: #050304; }
 .profile-btn:active { transform: scale(.92); }
 
+/* ---- undo the pops (hand-lettered, bottom-left, Pop mode only) ---- */
+
+.undo-btn {
+  position: absolute;
+  left: 5.5%;
+  bottom: 4%;
+  width: clamp(84px, 26%, 150px);
+  height: clamp(44px, 7.5%, 82px);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  z-index: 30;
+  display: none;                 /* only in Pop mode, and only with a pop to undo */
+  -webkit-tap-highlight-color: transparent;
+}
+.mode-pop.has-undo .undo-btn { display: block; }
+.undo-btn:active { transform: scale(.94); }
+
+.undo-btn__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: #2679c0;                 /* light blue — ~4.5:1 on white */
+  overflow: visible;
+  display: none;
+}
+.lang-en .undo-btn__svg.ub-undo   { display: block; }
+.lang-tr .undo-btn__svg.ub-gerial { display: block; }
+
 @media (prefers-reduced-motion: reduce) {
   .bubble__typing i { animation: none; }
   .mode-pop .bubble { animation: none; }

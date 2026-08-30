@@ -14,7 +14,11 @@
   var photoInput = document.getElementById('photoInput');
   var hairHit = document.getElementById('hairHit');
   var profileBtn = document.getElementById('profileBtn');
+  var undoBtn = document.getElementById('undoBtn');
   var appEl = document.querySelector('.pop-app');
+
+  var undoStack = [];          // snapshots of popped tasks, newest last
+  var UNDO_MAX = 30;
 
   var bubbles = new Map();     // id -> { task, el, body, url }
   var draft = null;
@@ -311,6 +315,15 @@
     var cy = body ? body.y : 0;
     if (body) { sim.remove(body); sim.wake(); }   // pile above drops into the gap
 
+    // remember it so the Undo control can bring it back
+    var t = entry.task;
+    undoStack.push({
+      text: t.text, image: t.image, r: r, x: cx, y: cy,
+      variant: t.variant, seq: t.seq, kind: t.kind, slot: t.slot
+    });
+    if (undoStack.length > UNDO_MAX) undoStack.shift();
+    refreshUndo();
+
     // the burst: starts as a dot at the bubble centre, grows to its rim
     var art = window.POP_BURST || { vb: '0 0 100 100', paths: '' };
     var burst = document.createElementNS(SVGNS, 'svg');
@@ -572,6 +585,28 @@
   if (profileBtn) {
     profileBtn.addEventListener('click', function () {
       window.dispatchEvent(new CustomEvent('pop:profile'));
+    });
+  }
+
+  // ---- undo the pops ------------------------------------------------------------
+
+  function refreshUndo() {
+    appEl.classList.toggle('has-undo', undoStack.length > 0);
+  }
+
+  if (undoBtn) {
+    undoBtn.addEventListener('click', function () {
+      var snap = undoStack.pop();
+      refreshUndo();
+      if (!snap) return;
+      Store.addTask({
+        text: snap.text, image: snap.image, x: snap.x, y: snap.y, r: snap.r,
+        variant: snap.variant, seq: snap.seq, kind: snap.kind, slot: snap.slot
+      }).then(function (task) {
+        var entry = spawnBubble(task, { drop: false });
+        if (entry.body) entry.body.vy = 1;
+        sim.wake();
+      });
     });
   }
 
