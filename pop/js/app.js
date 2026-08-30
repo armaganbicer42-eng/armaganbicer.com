@@ -657,7 +657,11 @@
         .then(function () { return Store.clear(); })
         .catch(function () {})
         .then(function () {
-          try { localStorage.removeItem('pop.seeded'); } catch (e) {}
+          try {
+            localStorage.removeItem('pop.seeded');
+            localStorage.removeItem('patlat.settingsSeen');  // bring the hint back
+            localStorage.removeItem('patlat.evdone');
+          } catch (e) {}
           location.reload();
         });
     });

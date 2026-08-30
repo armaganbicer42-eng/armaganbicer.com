@@ -312,8 +312,8 @@ html, body {
   position: absolute;
   top: 2.4%;
   right: 3.5%;
-  width: clamp(34px, 9vw, 46px);
-  height: clamp(34px, 9vw, 46px);
+  width: clamp(39px, 10.35vw, 53px);   /* 15% larger than the other top icons */
+  height: clamp(39px, 10.35vw, 53px);
   border: 0;
   background: transparent;
   padding: 0;
