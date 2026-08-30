@@ -126,13 +126,18 @@ html, body {
   inset: 5%;                      /* ring sits inside the collision circle, so */
   width: 90%;                     /* rolling never makes rings interlace */
   height: 90%;
-  fill: currentColor;
   pointer-events: none;
   overflow: visible;
   transform-origin: 50% 50%;
   will-change: transform;
 }
-.bubble__ill use { fill: currentColor; }
+.bubble__ill path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 4.5px;            /* constant weight (vector-effect on the path) */
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
 
 .bubble__text {
   position: relative;
@@ -218,6 +223,27 @@ html, body {
 }
 .bubble__photo svg { width: 17px; height: 17px; display: block; }
 .bubble__photo:active { transform: translateX(-50%) scale(.9); }
+
+.bubble__done {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px; height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid #111;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  z-index: 3;
+}
+.bubble__done[hidden] { display: none; }
+.bubble__done svg { width: 18px; height: 18px; display: block; }
+.bubble__done:active { transform: translateX(-50%) scale(.9); }
 
 /* pop: a burst grows from the bubble's centre to its rim, then the bubble goes */
 .bubble--popping { pointer-events: none; }

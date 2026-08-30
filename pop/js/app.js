@@ -196,7 +196,10 @@
     ill.setAttribute('viewBox', art.vb);
     ill.setAttribute('preserveAspectRatio', 'none');
     var p = document.createElementNS(SVGNS, 'path');
-    p.setAttribute('d', art.d);
+    // stroke the outline (non-scaling) so the line stays the same weight no
+    // matter how big the bubble grows with its text
+    p.setAttribute('d', art.ring || art.d);
+    p.setAttribute('vector-effect', 'non-scaling-stroke');
     ill.appendChild(p);
     return ill;
   }
@@ -383,28 +386,44 @@
       '<circle cx="12" cy="13" r="3.4" fill="none" stroke="currentColor" stroke-width="1.9"/>' +
       '</svg>';
 
+    // a visible confirm button — the reliable way to commit on mobile, where
+    // there's no Enter key (and none appears after the photo picker)
+    var done = document.createElement('button');
+    done.type = 'button';
+    done.className = 'bubble__done';
+    done.setAttribute('aria-label', uiLang === 'tr' ? 'Ekle' : 'Add');
+    done.hidden = true;
+    done.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+      '<path d="M5 13l4.5 4.5L20 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>';
+
     el.appendChild(editor);
     el.appendChild(dots);
     el.appendChild(photo);
+    el.appendChild(done);
     bubblesEl.appendChild(el);
 
-    draft = { el: el, editor: editor, dots: dots, photo: photo, cx: cx, cy: cy, r: r, image: null };
+    draft = { el: el, editor: editor, dots: dots, photo: photo, done: done, cx: cx, cy: cy, r: r, image: null };
     positionDraft();
     focusEditor(editor);
 
     editor.addEventListener('input', onDraftInput);
-    // clicking anywhere on the draft bubble (not just the tiny editor box)
-    // focuses the editor
+    // clicking anywhere on the draft bubble (not a button) focuses the editor
     el.addEventListener('pointerdown', function (ev) {
-      if (ev.target === photo) return;
+      if (ev.target.closest('.bubble__photo, .bubble__done')) return;
       ev.preventDefault();
       ev.stopPropagation();
       focusEditor(editor);
     });
-    // no blur handling: the draft bubble stays put until you press Enter
-    // (with text) or Escape. losing focus never discards it.
+    // no blur handling: the draft bubble stays put until you confirm or Escape.
     photo.addEventListener('pointerdown', function (ev) { ev.preventDefault(); ev.stopPropagation(); });
     photo.addEventListener('click', function (ev) { ev.stopPropagation(); photoInput.click(); });
+    done.addEventListener('pointerdown', function (ev) { ev.preventDefault(); ev.stopPropagation(); });
+    done.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      if (draft && (draft.editor.textContent.trim() || draft.image)) commitDraft();
+    });
   }
 
   function positionDraft() {
@@ -418,6 +437,7 @@
     if (!draft) return;
     var text = draft.editor.textContent.trim();
     draft.dots.style.display = text ? 'none' : '';
+    draft.done.hidden = !(text || draft.image);   // confirm button appears once there's content
     draft.r = Math.max(radiusFor({ text: text, image: draft.image }), MIN_R);
     positionDraft();
   }
