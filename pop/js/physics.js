@@ -230,8 +230,8 @@ window.Physics = (function () {
 
     // relaxation: push every overlapping pair fully apart (position only)
     // so the drawn rings touch instead of interlacing
-    var SEP = -2;
-    for (var pass = 0; pass < 4; pass++) {
+    var SEP = 1;
+    for (var pass = 0; pass < 7; pass++) {
       var moved = false;
       for (i = 0; i < list.length; i++) {
         a = list[i];

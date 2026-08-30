@@ -69,11 +69,65 @@
 
   // ---- boot --------------------------------------------------------------------
 
+  // first-ever visit: drop in a starter set of bubbles
+  function seedTasks() {
+    var tr = appEl.classList.contains('lang-tr');
+    var howto = tr ? [
+      'Saçtaki düğmeyle Ekle ve Patlat modu arasında geç',
+      'Ekle modunda boş yere dokun, görev baloncuğu düşsün',
+      'Patlat modunda bitirdiğin göreve dokun, patlasın'
+    ] : [
+      'Flip the hair switch to move between Add and Pop',
+      'In Add mode, tap the empty space to drop a task',
+      'In Pop mode, tap a task you have done to pop it'
+    ];
+    var pool = tr
+      ? ['annemi ara', 'markete git', '10 dk yürü', 'e-postalara bak', 'randevu al']
+      : ['call mom', 'buy groceries', '10 min walk', 'reply to emails', 'book a dentist'];
+    var a = Math.floor(Math.random() * pool.length);
+    var b = (a + 1 + Math.floor(Math.random() * (pool.length - 1))) % pool.length;
+
+    var seeds = [
+      { text: '💧 su iç', r: 52 },
+      { text: '💧 su iç', r: 52 },
+      { text: '💧 su iç', r: 52 },
+      { text: pool[a], r: 58 },
+      { text: pool[b], r: 58 },
+      { text: howto[0], r: 82 },
+      { text: howto[1], r: 82 },
+      { text: howto[2], r: 82 }
+    ];
+
+    var chain = Promise.resolve();
+    seeds.forEach(function (s, i) {
+      chain = chain.then(function () {
+        addCount += 1;
+        return Store.addTask({
+          text: s.text,
+          r: s.r,
+          variant: ((addCount - 1) % 3) + 1,
+          seq: addCount,
+          x: s.r + Math.random() * Math.max(1, boxW - s.r * 2),
+          y: 20 + i * 12
+        });
+      });
+    });
+    return chain.then(function () {
+      try { localStorage.setItem('pop.seeded', '1'); } catch (e) {}
+    });
+  }
+
   function start() {
     applyLang((navigator.language || 'en').toLowerCase().indexOf('tr') === 0 ? 'tr' : 'en');
     layoutArena();
     Store.init()
       .then(Store.getTasks)
+      .then(function (tasks) {
+        var seeded = false;
+        try { seeded = !!localStorage.getItem('pop.seeded'); } catch (e) {}
+        if (!tasks.length && !seeded) return seedTasks().then(Store.getTasks);
+        return tasks;
+      })
       .then(function (tasks) {
         tasks.forEach(function (t) {
           if (typeof t.variant === 'number') addCount = Math.max(addCount, t.seq || 0);
@@ -300,7 +354,11 @@
     photo.type = 'button';
     photo.className = 'bubble__photo';
     photo.setAttribute('aria-label', 'Add a photo');
-    photo.textContent = '+';
+    photo.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+      '<path d="M3.2 7.5h3.6L8.4 5h7.2l1.6 2.5h3.6v11H3.2z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>' +
+      '<circle cx="12" cy="13" r="3.4" fill="none" stroke="currentColor" stroke-width="1.9"/>' +
+      '</svg>';
 
     el.appendChild(editor);
     el.appendChild(dots);
@@ -312,7 +370,6 @@
     focusEditor(editor);
 
     editor.addEventListener('input', onDraftInput);
-    editor.addEventListener('keydown', onDraftKey);
     // clicking anywhere on the draft bubble (not just the tiny editor box)
     // focuses the editor
     el.addEventListener('pointerdown', function (ev) {
@@ -342,16 +399,19 @@
     positionDraft();
   }
 
+  // Enter / Escape while a draft is open — listened on the document, so it
+  // still works after the file picker steals focus from the editor
   function onDraftKey(e) {
+    if (!draft) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      // only commits once there's something written
-      if (draft && (draft.editor.textContent.trim() || draft.image)) commitDraft();
+      if (draft.editor.textContent.trim() || draft.image) commitDraft();
     } else if (e.key === 'Escape') {
       e.preventDefault();
       discardDraft();
     }
   }
+  document.addEventListener('keydown', onDraftKey);
 
   photoInput.addEventListener('change', function () {
     var file = photoInput.files && photoInput.files[0];
@@ -367,7 +427,9 @@
     }
     bg.src = url;
     draft.dots.style.display = 'none';
+    // focus() right after a file dialog is often ignored; retry on the next tick
     draft.editor.focus();
+    setTimeout(function () { if (draft) draft.editor.focus(); }, 120);
     onDraftInput();
   });
 
