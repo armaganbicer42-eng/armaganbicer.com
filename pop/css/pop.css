@@ -325,6 +325,25 @@ html, body {
 .profile-btn .ink { fill: #050304; }
 .profile-btn:active { transform: scale(.92); }
 
+/* first-run hint pointing at the settings button */
+.settings-hint {
+  position: absolute;
+  top: 20.5%;
+  right: 7%;
+  max-width: 54%;
+  margin: 0;
+  text-align: right;
+  font-family: 'Times New Roman', Times, serif;
+  font-style: italic;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #8b8b8b;
+  z-index: 20;
+  pointer-events: none;
+  display: none;
+}
+.settings-hint.is-on { display: block; }
+
 /* ---- Instagram link (top-left, pink→purple) ---- */
 
 .ig-btn {
@@ -460,9 +479,14 @@ body.pp-locked { overflow: hidden; }
   flex-direction: column;
   background: #fff;
   color: #141414;
-  font-family: "Times New Roman", Times, serif;
-  font-style: normal;
+  /* Deliberately NOT naming "Times New Roman": the app registers an
+     italic-only @font-face under that exact name, so a literal reference can
+     render the whole panel in italic. "Times" (Apple) / serif (= Times New
+     Roman on Windows) / Liberation Serif give an upright Times face everywhere. */
+  font-family: Times, "Liberation Serif", "Nimbus Roman", serif;
 }
+.profile-panel,
+.profile-panel * { font-style: normal; font-synthesis: none; }
 .profile-panel.open { display: flex; }
 
 .pp-bar {

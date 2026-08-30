@@ -92,6 +92,11 @@
     ]
   };
 
+  var SETTINGS_HINT = {
+    en: 'New here? Open settings, top right, to add calendar events and recurring reminders.',
+    tr: 'Yeni misin? Takvim etkinlikleri ve tekrar eden hatırlatıcılar eklemek için sağ üstten ayarları aç.'
+  };
+
   function detectLang() {
     var forced = (location.search.match(/[?&]lang=(tr|en)\b/) || [])[1];
     if (forced) return forced;
@@ -588,9 +593,23 @@
     setMode(mode === 'add' ? 'pop' : 'add');
   });
 
-  // profile / login — placeholder until the login page exists
+  // settings button -> opens the profile / calendar panel
+  var settingsHint = document.getElementById('settingsHint');
+  var HINT_KEY = 'patlat.settingsSeen';
+
+  function hideHint(persist) {
+    if (settingsHint) settingsHint.classList.remove('is-on');
+    if (persist) { try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {} }
+  }
+  if (settingsHint) {
+    settingsHint.textContent = SETTINGS_HINT[uiLang] || SETTINGS_HINT.en;
+    var seen = false;
+    try { seen = !!localStorage.getItem(HINT_KEY); } catch (e) {}
+    if (!seen) settingsHint.classList.add('is-on');
+  }
   if (profileBtn) {
     profileBtn.addEventListener('click', function () {
+      hideHint(true);
       window.dispatchEvent(new CustomEvent('pop:profile'));
     });
   }
