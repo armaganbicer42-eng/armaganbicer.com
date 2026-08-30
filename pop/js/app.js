@@ -18,6 +18,7 @@
 
   var bubbles = new Map();     // id -> { task, el, body, url }
   var draft = null;
+  var pickingPhoto = false;   // true while the OS photo picker is open
   var mode = 'add';
   var addCount = 0;            // drives the 1-2-3 bubble illustration cycle
   var poly = [];               // collision polygon in .bubbles pixel space
@@ -409,6 +410,16 @@
     focusEditor(editor);
 
     editor.addEventListener('input', onDraftInput);
+    // dismissing the keyboard (blur) commits the bubble if it has content;
+    // an empty one is left where it is
+    editor.addEventListener('blur', function () {
+      setTimeout(function () {
+        if (!draft || draft.editor !== editor) return;   // already committed / discarded
+        if (document.activeElement === editor) return;     // refocused (tapped the bubble)
+        if (pickingPhoto) return;                          // camera flow in progress
+        if (draft.editor.textContent.trim() || draft.image) commitDraft();
+      }, 150);
+    });
     // clicking anywhere on the draft bubble (not a button) focuses the editor
     el.addEventListener('pointerdown', function (ev) {
       if (ev.target.closest('.bubble__photo, .bubble__done')) return;
@@ -418,7 +429,11 @@
     });
     // no blur handling: the draft bubble stays put until you confirm or Escape.
     photo.addEventListener('pointerdown', function (ev) { ev.preventDefault(); ev.stopPropagation(); });
-    photo.addEventListener('click', function (ev) { ev.stopPropagation(); photoInput.click(); });
+    photo.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      pickingPhoto = true;   // suppress the blur-commit while the picker is open
+      photoInput.click();
+    });
     done.addEventListener('pointerdown', function (ev) { ev.preventDefault(); ev.stopPropagation(); });
     done.addEventListener('click', function (ev) {
       ev.stopPropagation();
@@ -457,6 +472,7 @@
   document.addEventListener('keydown', onDraftKey);
 
   photoInput.addEventListener('change', function () {
+    pickingPhoto = false;
     var file = photoInput.files && photoInput.files[0];
     photoInput.value = '';
     if (!file || !draft) return;
@@ -474,6 +490,11 @@
     draft.editor.focus();
     setTimeout(function () { if (draft) draft.editor.focus(); }, 120);
     onDraftInput();
+  });
+
+  // returning from a cancelled photo picker: clear the guard
+  window.addEventListener('focus', function () {
+    setTimeout(function () { pickingPhoto = false; }, 350);
   });
 
   function commitDraft() {
