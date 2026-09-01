@@ -342,6 +342,11 @@ body.product-page {
   opacity: 0.8;
 }
 
+.update-item__cta {
+  display: inline-block;
+  margin: -8px 0 28px;
+}
+
 .update-item__desc {
   max-width: 640px;
   margin: 14px 0 28px;
