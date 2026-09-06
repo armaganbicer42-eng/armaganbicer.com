@@ -47,9 +47,14 @@ Yerelde çalıştırmak: repo kökünde `python3 -m http.server 4610` → taray�
   mekaniğe göre metin).
 - **İlk açılış onboarding'i**: karartılmış arka plan + hedefi çerçeveleyen halka +
   adım kartları. Son adım mekanik seçtiriyor; "Bitti"de başlangıç baloncukları eklenir.
-- BEKLEYEN (asset lazım): `cactus` / `bin` mekanikleri + kafa içi kaktüs/çöp kovası
-  görselleri. `tinyframe` asset'i kopyalandı ama henüz kullanılmadı (sekme arka planı
-  için düşünülmüştü; düz pill şu an yeterli).
+- Onboarding artık INTERAKTIF: "ekle" adımı gerçek baloncuk oluşturmayı bekliyor;
+  sonra her patlatma mekaniği tek tek (saç düğmesi, 3sn tut, çift dokun) deneme
+  baloncuğuyla yürütülüyor. Son adım seçtiriyor.
+- `tinyframe` sekme çerçevesi olarak kullanılıyor (aktif = koyu, pasif = gri).
+  `+` = tinyplus, sil `×` = tinycross. `?` butonu mavi + büyük + yukarıda.
+- "New here…" ipucu kaldırıldı.
+- BEKLEYEN (asset lazım): `cactus` / `bin` mekanikleri + kafa içi kaktüs / çöp
+  kovası görselleri.
 
 ### 5. Bireysel kozmetik + fonksiyonel eklentiler
 - Kafanın içine yerleştirilebilen "aygıt"lar: kaktüs (balonu kaktüse
