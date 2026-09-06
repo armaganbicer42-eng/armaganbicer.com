@@ -11,13 +11,15 @@ Yerelde çalıştırmak: repo kökünde `python3 -m http.server 4610` → taray�
 
 ## Planlanan özellikler
 
-### 1. Birden fazla sekme (kafa)
-- Kişi istediği kadar "boş kafa" sekmesi açar, isimlendirir/kategorize eder.
-- Her sekmenin kendi baloncuk yığını + kendi fizik alanı.
-- Depolama: `store.js` `tasks` kaydına `boardId` alanı; ayrı bir `boards`
-  store (id, name, order, theme/skin, createdAt). Aktif sekme localStorage'da.
-- UI: üstte veya kenarda sekme şeridi; + ile yeni, uzun basınca yeniden
-  adlandır/sil.
+### 1. Birden fazla sekme (kafa)  — ✅ YAPILDI (commit 5f3ec2d)
+- `store.js` DB v3: `boards` store (id, name, order, createdAt) + CRUD.
+  `tasks.boardId`; `getTasks(boardId)`. `deleteBoard` o kafadaki task'leri de siler.
+- `boards` şeridi çerçevenin üst içinde: dokun→geç, aktif sekmeye dokun→satır içi
+  yeniden adlandır + sil (son kafa silinemez). `+` yeni kafa açar ve isim moduna girer.
+- Eski (v1/v2) board'suz task'ler ilk açılışta bir "kafam" board'una taşınır.
+- Takvim hatırlatıcısı tek bir kafada belirir (tüm kafalar taranarak kopya önlenir).
+- TODO/polish: şerit şu an düz CSS pill; el-çizimi estetiğe geçirmek için asset gerek
+  (aşağıya bak).
 
 ### 2. Baloncuk rengi seçme
 - Baloncuk başına renk (`tasks.color`) veya sekme geneli varsayılan renk.
