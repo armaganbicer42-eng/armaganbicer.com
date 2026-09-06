@@ -10,9 +10,10 @@
  */
 window.Store = (function () {
   var DB_NAME = 'pop';
-  var DB_VERSION = 2;
+  var DB_VERSION = 3;
   var STORE = 'tasks';
   var EVENTS = 'events';        // calendar reminders (single or recurring)
+  var BOARDS = 'boards';        // separate "head" boards; each task belongs to one
   var dbPromise = null;
 
   function open() {
@@ -27,9 +28,23 @@ window.Store = (function () {
         if (!db.objectStoreNames.contains(EVENTS)) {
           db.createObjectStore(EVENTS, { keyPath: 'id' });
         }
+        if (!db.objectStoreNames.contains(BOARDS)) {
+          db.createObjectStore(BOARDS, { keyPath: 'id' });
+        }
+        // tasks from v1/v2 carry no boardId — app.js adopts them into a
+        // default board on first run after this upgrade.
       };
-      req.onsuccess = function () { resolve(req.result); };
+      req.onsuccess = function () {
+        var db = req.result;
+        // if another tab opens a newer version, step aside so it isn't blocked
+        db.onversionchange = function () { db.close(); dbPromise = null; };
+        resolve(db);
+      };
       req.onerror = function () { reject(req.error); };
+      req.onblocked = function () {
+        // another tab holds an older connection open; it will get
+        // 'versionchange' and close, then this resolves on its own
+      };
     });
     return dbPromise;
   }
@@ -75,24 +90,30 @@ window.Store = (function () {
       return open().then(function () {});
     },
 
-    /** All tasks, oldest first. */
-    getTasks: function () {
+    /**
+     * Tasks, oldest first.
+     * @param {string} [boardId] if given, only that board's tasks
+     */
+    getTasks: function (boardId) {
       return tx('readonly').then(function (os) {
         return reqToPromise(os.getAll());
       }).then(function (rows) {
-        return (rows || []).sort(function (a, b) { return a.createdAt - b.createdAt; });
+        rows = rows || [];
+        if (boardId) rows = rows.filter(function (t) { return t.boardId === boardId; });
+        return rows.sort(function (a, b) { return a.createdAt - b.createdAt; });
       });
     },
 
     /**
      * Add a task.
-     * @param {{text?, image?, x?, y?, r?, variant?, seq?}} data
+     * @param {{text?, image?, x?, y?, r?, variant?, seq?, boardId?}} data
      * @returns {Promise<object>} the stored task
      */
     addTask: function (data) {
       data = data || {};
       var task = {
         id: data.id || uid(),
+        boardId: data.boardId || null,
         text: data.text || '',
         image: data.image || null,
         x: typeof data.x === 'number' ? data.x : null,
@@ -129,12 +150,65 @@ window.Store = (function () {
       });
     },
 
-    /** Wipe everything — tasks and calendar events. */
+    /** Wipe everything — tasks, calendar events, boards. */
     clear: function () {
       return Promise.all([
         tx('readwrite', STORE).then(function (os) { return reqToPromise(os.clear()); }),
-        tx('readwrite', EVENTS).then(function (os) { return reqToPromise(os.clear()); })
+        tx('readwrite', EVENTS).then(function (os) { return reqToPromise(os.clear()); }),
+        tx('readwrite', BOARDS).then(function (os) { return reqToPromise(os.clear()); })
       ]);
+    },
+
+    // ---- boards (separate "head" boards) -----------------------------------
+
+    /** All boards, in display order. */
+    getBoards: function () {
+      return tx('readonly', BOARDS).then(function (os) {
+        return reqToPromise(os.getAll());
+      }).then(function (rows) {
+        return (rows || []).sort(function (a, b) {
+          return (a.order - b.order) || (a.createdAt - b.createdAt);
+        });
+      });
+    },
+
+    /** @param {{name?, order?}} data */
+    addBoard: function (data) {
+      data = data || {};
+      var board = {
+        id: data.id || uid(),
+        name: (data.name || 'board').trim(),
+        order: typeof data.order === 'number' ? data.order : 0,
+        createdAt: Date.now()
+      };
+      return tx('readwrite', BOARDS).then(function (os) {
+        return reqToPromise(os.put(board));
+      }).then(function () { return board; });
+    },
+
+    updateBoard: function (id, patch) {
+      return tx('readwrite', BOARDS).then(function (os) {
+        return reqToPromise(os.get(id)).then(function (row) {
+          if (!row) return null;
+          Object.keys(patch).forEach(function (k) { row[k] = patch[k]; });
+          return reqToPromise(os.put(row)).then(function () { return row; });
+        });
+      });
+    },
+
+    /** Remove a board AND every task on it. */
+    deleteBoard: function (id) {
+      return tx('readwrite', BOARDS)
+        .then(function (os) { return reqToPromise(os['delete'](id)); })
+        .then(function () { return tx('readwrite', STORE); })
+        .then(function (os) {
+          return reqToPromise(os.getAll()).then(function (rows) {
+            var kills = (rows || [])
+              .filter(function (t) { return t.boardId === id; })
+              .map(function (t) { return reqToPromise(os['delete'](t.id)); });
+            return Promise.all(kills);
+          });
+        });
     },
 
     // ---- calendar events (single or recurring reminders) --------------------

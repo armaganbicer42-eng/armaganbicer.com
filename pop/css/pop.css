@@ -92,6 +92,75 @@ html, body {
 }
 .mode-add .bubbles { cursor: crosshair; }
 
+/* ---- board tabs: one strip per "head" board ---- */
+
+.boards {
+  position: absolute;
+  left: var(--arena-l);
+  right: var(--arena-r);
+  top: calc(var(--arena-t) + 0.6%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  z-index: 8;
+  pointer-events: none;              /* taps fall through the gaps to the arena */
+}
+.boards::-webkit-scrollbar { display: none; }
+.boards > * { pointer-events: auto; flex: 0 0 auto; }
+
+.board-tab {
+  font-family: 'SwellTR', 'Times New Roman', Times, serif;
+  font-size: 13px;
+  line-height: 1;
+  padding: 7px 12px;
+  border: 1.5px solid #d7d7d7;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  color: #8b8b8b;
+  white-space: nowrap;
+  max-width: 42vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.board-tab.is-active { color: #111; border-color: #111; background: #fff; }
+
+.board-add {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid #d7d7d7;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  color: #8b8b8b;
+  font-size: 18px; line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.board-rename { display: flex; align-items: center; gap: 4px; }
+.board-rename__input {
+  font-family: 'SwellTR', 'Times New Roman', Times, serif;
+  font-size: 13px;
+  padding: 7px 12px;
+  border: 1.5px solid #111;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  max-width: 42vw;
+  outline: none;
+}
+.board-rename__del {
+  border: 0; background: transparent;
+  color: #c0392b; font-size: 12px;
+  cursor: pointer; padding: 4px 6px;
+}
+
 /* ---- bubbles: the hand-drawn ring is the outline ---- */
 
 .bubble {
@@ -328,7 +397,7 @@ html, body {
 /* first-run hint pointing at the settings button */
 .settings-hint {
   position: absolute;
-  top: 20.5%;
+  top: 27%;
   right: 7%;
   max-width: 54%;
   margin: 0;

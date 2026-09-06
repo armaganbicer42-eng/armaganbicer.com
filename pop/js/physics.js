@@ -45,6 +45,7 @@ window.Physics = (function () {
     var i = this.bodies.indexOf(body);
     if (i !== -1) this.bodies.splice(i, 1);
   };
+  Sim.prototype.clear = function () { this.bodies.length = 0; };
   Sim.prototype.onSettle = function (fn) { this._onSettle = fn; };
 
   Sim.prototype.wake = function () {

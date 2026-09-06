@@ -11,6 +11,7 @@
   var stage = document.getElementById('stage');
   var headHair = document.querySelector('.headandhair');
   var bubblesEl = document.getElementById('bubbles');
+  var boardsEl = document.getElementById('boards');
   var photoInput = document.getElementById('photoInput');
   var hairHit = document.getElementById('hairHit');
   var profileBtn = document.getElementById('profileBtn');
@@ -28,6 +29,11 @@
   var pickingPhoto = false;   // true while the OS photo picker is open
   var mode = 'add';
   var addCount = 0;            // drives the 1-2-3 bubble illustration cycle
+
+  var boards = [];             // [{ id, name, order, createdAt }]
+  var activeBoardId = null;
+  var renamingId = null;
+  var BOARD_KEY = 'patlat.activeBoard';
   var poly = [];               // collision polygon in .bubbles pixel space
   var boxW = 1, boxH = 1;
   var savePositionsSoon = throttle(savePositions, 600);
@@ -132,6 +138,7 @@
         addCount += 1;
         return Store.addTask({
           text: s.text,
+          boardId: activeBoardId,
           r: s.r,
           kind: s.kind,
           slot: s.slot,
@@ -147,35 +154,182 @@
     });
   }
 
+  function firstBoardName() { return uiLang === 'tr' ? 'kafam' : 'my head'; }
+  function newBoardName() { return uiLang === 'tr' ? 'yeni kafa' : 'new head'; }
+
   function start() {
     applyLang(uiLang);
     layoutArena();
+    requestAnimationFrame(renderLoop);      // one loop for the life of the page
+
     Store.init()
-      .then(Store.getTasks)
-      .then(function (tasks) {
-        var seeded = false;
-        try { seeded = !!localStorage.getItem('pop.seeded'); } catch (e) {}
-        if (!tasks.length && !seeded) return seedTasks().then(Store.getTasks);
-        return tasks;
-      })
-      .then(function (tasks) {
-        tasks.forEach(function (t) {
-          if (typeof t.variant === 'number') addCount = Math.max(addCount, t.seq || 0);
-          // keep the how-it-works bubbles in the current browser language
-          if (t.kind === 'howto' && HOWTO[uiLang] && HOWTO[uiLang][t.slot] &&
-              t.text !== HOWTO[uiLang][t.slot]) {
-            t.text = HOWTO[uiLang][t.slot];
-            Store.updateTask(t.id, { text: t.text });
-          }
-          spawnBubble(t, { drop: false });
+      .then(function () { return Store.getBoards(); })
+      .then(function (bs) {
+        boards = bs || [];
+        if (boards.length) return;
+        // first run on this version: make a board and adopt any board-less
+        // tasks (from v1/v2) into it
+        return Store.addBoard({ name: firstBoardName(), order: 0 }).then(function (b) {
+          boards = [b];
+          return Store.getTasks();          // ALL tasks
+        }).then(function (all) {
+          return Promise.all((all || [])
+            .filter(function (t) { return !t.boardId; })
+            .map(function (t) { return Store.updateTask(t.id, { boardId: boards[0].id }); }));
         });
-        requestAnimationFrame(renderLoop);
-        syncEventBubbles();          // today's calendar reminders -> bubbles
       })
-      .catch(function (err) { console.error('POP failed to start', err); });
+      .then(function () {
+        var saved = null;
+        try { saved = localStorage.getItem(BOARD_KEY); } catch (e) {}
+        activeBoardId = boards.some(function (b) { return b.id === saved; })
+          ? saved : boards[0].id;
+        return loadBoard(activeBoardId, { seedIfEmpty: true });
+      })
+      .catch(function (err) { console.error('patlat failed to start', err); });
   }
   if (document.readyState === 'complete') start();
   else window.addEventListener('load', start);
+
+  // ---- boards --------------------------------------------------------------
+
+  // tear down the current board's bubbles and load another's
+  function loadBoard(id, opts) {
+    opts = opts || {};
+    savePositions();
+    if (draft) discardDraft();
+    bubbles.forEach(function (b) {
+      if (b.url) URL.revokeObjectURL(b.url);
+      b.el.remove();
+    });
+    bubbles.clear();
+    sim.clear();
+    addCount = 0;
+
+    activeBoardId = id;
+    try { localStorage.setItem(BOARD_KEY, id); } catch (e) {}
+    renderBoards();
+
+    return Store.getTasks(id).then(function (tasks) {
+      var seeded = false;
+      try { seeded = !!localStorage.getItem('pop.seeded'); } catch (e) {}
+      if (opts.seedIfEmpty && !tasks.length && !seeded) {
+        return seedTasks().then(function () { return Store.getTasks(id); });
+      }
+      return tasks;
+    }).then(function (tasks) {
+      tasks.forEach(function (t) {
+        if (typeof t.variant === 'number') addCount = Math.max(addCount, t.seq || 0);
+        // keep the how-it-works bubbles in the current browser language
+        if (t.kind === 'howto' && HOWTO[uiLang] && HOWTO[uiLang][t.slot] &&
+            t.text !== HOWTO[uiLang][t.slot]) {
+          t.text = HOWTO[uiLang][t.slot];
+          Store.updateTask(t.id, { text: t.text });
+        }
+        spawnBubble(t, { drop: false });
+      });
+      sim.wake();
+      syncEventBubbles();
+    });
+  }
+
+  function boardsSorted() {
+    return boards.slice().sort(function (a, b) {
+      return (a.order - b.order) || (a.createdAt - b.createdAt);
+    });
+  }
+
+  function renderBoards() {
+    if (!boardsEl) return;
+    boardsEl.innerHTML = '';
+    boardsSorted().forEach(function (b) {
+      if (renamingId === b.id) { boardsEl.appendChild(renameField(b)); return; }
+      var tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'board-tab' + (b.id === activeBoardId ? ' is-active' : '');
+      tab.textContent = b.name;
+      tab.addEventListener('click', function () {
+        if (b.id === activeBoardId) startRename(b.id);
+        else loadBoard(b.id);
+      });
+      boardsEl.appendChild(tab);
+    });
+    var add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'board-add';
+    add.setAttribute('aria-label', uiLang === 'tr' ? 'Yeni kafa' : 'New board');
+    add.textContent = '+';
+    add.addEventListener('click', addBoard);
+    boardsEl.appendChild(add);
+  }
+
+  function startRename(id) { renamingId = id; renderBoards(); }
+
+  function renameField(b) {
+    var wrap = document.createElement('span');
+    wrap.className = 'board-rename';
+
+    var input = document.createElement('input');
+    input.className = 'board-rename__input';
+    input.value = b.name;
+    input.maxLength = 24;
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'board-rename__del';
+    del.textContent = uiLang === 'tr' ? 'sil' : 'delete';
+
+    var committed = false;
+    function finish(name) {
+      if (committed) return;
+      committed = true;
+      renamingId = null;
+      name = (name || '').trim() || b.name;
+      Store.updateBoard(b.id, { name: name }).then(function () {
+        var rec = boards.filter(function (x) { return x.id === b.id; })[0];
+        if (rec) rec.name = name;
+        renderBoards();
+      });
+    }
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); finish(input.value); }
+      else if (e.key === 'Escape') { e.preventDefault(); committed = true; renamingId = null; renderBoards(); }
+    });
+    input.addEventListener('blur', function () {
+      setTimeout(function () { if (renamingId === b.id) finish(input.value); }, 120);
+    });
+
+    del.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+    del.addEventListener('click', function (e) {
+      e.preventDefault();
+      committed = true;
+      if (boards.length <= 1) { renamingId = null; renderBoards(); return; }  // always keep one
+      var msg = uiLang === 'tr'
+        ? 'Bu kafayı ve içindeki her şeyi sil?'
+        : 'Delete this board and everything on it?';
+      if (!window.confirm(msg)) { renamingId = null; renderBoards(); return; }
+      renamingId = null;
+      var wasActive = b.id === activeBoardId;
+      Store.deleteBoard(b.id).then(function () {
+        boards = boards.filter(function (x) { return x.id !== b.id; });
+        if (wasActive) loadBoard(boardsSorted()[0].id);
+        else renderBoards();
+      });
+    });
+
+    wrap.appendChild(input);
+    wrap.appendChild(del);
+    setTimeout(function () { input.focus(); input.select(); }, 0);
+    return wrap;
+  }
+
+  function addBoard() {
+    var maxOrder = boards.reduce(function (m, b) { return Math.max(m, b.order || 0); }, -1);
+    Store.addBoard({ name: newBoardName(), order: maxOrder + 1 }).then(function (b) {
+      boards.push(b);
+      loadBoard(b.id).then(function () { startRename(b.id); });
+    });
+  }
 
   // ---- render loop -----------------------------------------------------------
 
@@ -573,7 +727,7 @@
     addCount += 1;
     var variant = ((addCount - 1) % 3) + 1;
 
-    Store.addTask({ text: text, image: d.image, x: cx, y: cy, r: r, variant: variant, seq: addCount })
+    Store.addTask({ text: text, image: d.image, boardId: activeBoardId, x: cx, y: cy, r: r, variant: variant, seq: addCount })
       .then(function (task) {
         var entry = spawnBubble(task, { drop: false });
         entry.body.vy = 1.5;
@@ -627,7 +781,8 @@
       if (!snap) return;
       if (snap.evKey) evDone.remove(snap.evKey);
       Store.addTask({
-        text: snap.text, image: snap.image, x: snap.x, y: snap.y, r: snap.r,
+        text: snap.text, image: snap.image, boardId: activeBoardId,
+        x: snap.x, y: snap.y, r: snap.r,
         variant: snap.variant, seq: snap.seq, kind: snap.kind, slot: snap.slot,
         evKey: snap.evKey
       }).then(function (task) {
@@ -661,6 +816,7 @@
             localStorage.removeItem('pop.seeded');
             localStorage.removeItem('patlat.settingsSeen');  // bring the hint back
             localStorage.removeItem('patlat.evdone');
+            localStorage.removeItem('patlat.activeBoard');
           } catch (e) {}
           location.reload();
         });
@@ -720,12 +876,13 @@
   })();
 
   function syncEventBubbles() {
-    if (!window.Store || !Store.getEvents || !window.PatlatCal) return;
-    Store.getEvents().then(function (evs) {
+    if (!window.Store || !Store.getEvents || !window.PatlatCal || !activeBoardId) return;
+    Promise.all([Store.getEvents(), Store.getTasks()]).then(function (res) {
+      var evs = res[0] || [], allTasks = res[1] || [];
       var now = new Date();
-      var seen = {};
-      bubbles.forEach(function (b) { if (b.task && b.task.evKey) seen[b.task.evKey] = true; });
-      (evs || []).forEach(function (ev) {
+      var seen = {};   // evKeys already materialised on ANY board today
+      allTasks.forEach(function (t) { if (t.evKey) seen[t.evKey] = true; });
+      evs.forEach(function (ev) {
         window.PatlatCal.expandOccurrences(ev, now, now).forEach(function (dayStr) {
           var key = 'ev:' + ev.id + ':' + dayStr;
           if (seen[key] || evDone.has(key)) return;
@@ -733,8 +890,8 @@
           var label = (ev.time ? ev.time + '  ' : '') + (ev.title || 'reminder');
           addCount += 1;
           Store.addTask({
-            text: label, kind: 'event', evKey: key,
-            x: boxW / 2, y: 30,
+            text: label, kind: 'event', evKey: key, boardId: activeBoardId,
+            x: boxW / 2, y: 44,
             r: Math.max(radiusFor({ text: label }), MIN_R),
             variant: ((addCount - 1) % 3) + 1, seq: addCount
           }).then(function (task) {
