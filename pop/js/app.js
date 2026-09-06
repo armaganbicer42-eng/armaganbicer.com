@@ -107,11 +107,6 @@
     ]
   };
 
-  var SETTINGS_HINT = {
-    en: 'New here? Open settings, top right, to add calendar events and recurring reminders.',
-    tr: 'Yeni misin? Takvim etkinlikleri ve tekrar eden hatırlatıcılar eklemek için sağ üstten ayarları aç.'
-  };
-
   function detectLang() {
     var forced = (location.search.match(/[?&]lang=(tr|en)\b/) || [])[1];
     if (forced) return forced;
@@ -277,7 +272,12 @@
       var tab = document.createElement('button');
       tab.type = 'button';
       tab.className = 'board-tab' + (isActive ? ' is-active' : '');
-      tab.textContent = b.name;
+      var frame = useSvg('icon-tinyframe', 'board-tab__frame');
+      var label = document.createElement('span');
+      label.className = 'board-tab__label';
+      label.textContent = b.name;
+      tab.appendChild(frame);
+      tab.appendChild(label);
       tab.addEventListener('click', function () {
         if (isActive) startRename(b.id);
         else loadBoard(b.id);
@@ -554,14 +554,16 @@
     var cy = body ? body.y : 0;
     if (body) { sim.remove(body); sim.wake(); }   // pile above drops into the gap
 
-    // remember it so the Undo control can bring it back
+    // remember it so the Undo control can bring it back (not for tour practice)
     var t = entry.task;
-    undoStack.push({
-      text: t.text, image: t.image, r: r, x: cx, y: cy,
-      variant: t.variant, seq: t.seq, kind: t.kind, slot: t.slot, evKey: t.evKey
-    });
-    if (undoStack.length > UNDO_MAX) undoStack.shift();
-    refreshUndo();
+    if (!t.practice) {
+      undoStack.push({
+        text: t.text, image: t.image, r: r, x: cx, y: cy,
+        variant: t.variant, seq: t.seq, kind: t.kind, slot: t.slot, evKey: t.evKey
+      });
+      if (undoStack.length > UNDO_MAX) undoStack.shift();
+      refreshUndo();
+    }
 
     // a popped calendar reminder should stay gone for the rest of the day
     if (t.evKey) evDone.add(t.evKey);
@@ -584,7 +586,7 @@
       entry.el.remove();
       if (entry.url) URL.revokeObjectURL(entry.url);
       bubbles['delete'](entry.task.id);
-      Store.deleteTask(entry.task.id);
+      if (!t.practice) Store.deleteTask(entry.task.id);
       burst.classList.add('pop-burst--done');
     }, GROW_MS);
 
@@ -825,22 +827,8 @@
   });
 
   // settings button -> opens the profile / calendar panel
-  var settingsHint = document.getElementById('settingsHint');
-  var HINT_KEY = 'patlat.settingsSeen';
-
-  function hideHint(persist) {
-    if (settingsHint) settingsHint.classList.remove('is-on');
-    if (persist) { try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {} }
-  }
-  if (settingsHint) {
-    settingsHint.textContent = SETTINGS_HINT[uiLang] || SETTINGS_HINT.en;
-    var seen = false;
-    try { seen = !!localStorage.getItem(HINT_KEY); } catch (e) {}
-    if (!seen) settingsHint.classList.add('is-on');
-  }
   if (profileBtn) {
     profileBtn.addEventListener('click', function () {
-      hideHint(true);
       window.dispatchEvent(new CustomEvent('pop:profile'));
     });
   }
@@ -903,28 +891,30 @@
   var tourCard = document.getElementById('tourCard');
   var tourRing = document.getElementById('tourRing');
 
-  var TOUR = {
+  var TXT = {
     en: {
       intro:  { h: 'this is patlat', p: 'A place to dump the small stuff you keep forgetting. Each task is a bubble that piles up. Pop the ones you’ve done.' },
-      add:    { h: 'add a task', p: 'Tap any empty space and type. The bubble drops in and joins the pile. Drag bubbles around however you like.', target: '#bubbles' },
-      pop_hairswitch: { h: 'pop a task', p: 'Flip the switch in the hair to enter Pop mode, then tap a task you’ve finished — it bursts.', target: '.hair-hit' },
-      pop_hold:       { h: 'pop a task', p: 'Press and hold a bubble for 3 seconds and it pops.' },
-      pop_doubletap:  { h: 'pop a task', p: 'Double-tap a bubble and it pops.' },
-      boards: { h: 'many heads', p: 'Open as many boards as you want and switch between them — each keeps its own pile. Tap +, tap a board to rename, tap × to delete.', target: '#boards' },
+      add:    { h: 'add a task', p: 'Tap the empty space and type something, then finish the bubble.', hint: 'Try it now — tap an empty spot.', target: '#bubbles', cardTop: true },
+      popIntro: { h: 'popping', p: 'There are a few ways to pop a done task. Let’s try each one on a practice bubble.' },
+      try_hairswitch: { h: 'way 1 · the hair switch', p: 'Flip the switch in the hair to enter Pop mode, then tap the bubble.', hint: 'Flip the switch, then tap the bubble.', target: '.hair-hit' },
+      try_hold:      { h: 'way 2 · hold 3 seconds', p: 'Press and hold the bubble. After 3 seconds it pops.', hint: 'Press and hold the bubble.', bubbleTarget: true, cardTop: true },
+      try_doubletap: { h: 'way 3 · double-tap', p: 'Tap the bubble twice, quickly.', hint: 'Double-tap the bubble.', bubbleTarget: true, cardTop: true },
+      boards: { h: 'many heads', p: 'Open as many boards as you want and switch between them — each keeps its own pile. + adds one, tap a board to rename, × to delete.', target: '#boards' },
       settings: { h: 'reminders & calendar', p: 'The gear, top right, is where you add one-off or repeating reminders. They pop up as bubbles on their day.', target: '#profileBtn' },
-      pick:   { h: 'how do you want to pop?', p: 'Pick the popping style. You can change it later in settings.' },
-      next: 'Next', back: 'Back', done: 'Done', skip: 'Skip', start: 'Start'
+      pick:   { h: 'which one do you want to keep?', p: 'Pick your popping style. You can change it any time in settings.' },
+      nice: 'nice 🎉', next: 'Next', back: 'Back', done: 'Done', skip: 'Skip', practice: 'pop me'
     },
     tr: {
       intro:  { h: 'bu patlat', p: 'Sürekli unuttuğun küçük işleri atıp rahatladığın yer. Her görev bir baloncuk, yığılırlar. Bitirdiklerini patlat.' },
-      add:    { h: 'görev ekle', p: 'Boş bir yere dokun ve yaz. Baloncuk düşer, yığına katılır. Baloncukları istediğin gibi sürükle.', target: '#bubbles' },
-      pop_hairswitch: { h: 'görevi patlat', p: 'Saçtaki düğmeyle Patlat moduna geç, sonra bitirdiğin göreve dokun — patlar.', target: '.hair-hit' },
-      pop_hold:       { h: 'görevi patlat', p: 'Bir baloncuğa 3 saniye basılı tut, patlar.' },
-      pop_doubletap:  { h: 'görevi patlat', p: 'Bir baloncuğa çift dokun, patlar.' },
-      boards: { h: 'birden fazla kafa', p: 'İstediğin kadar kafa aç ve aralarında geç — her biri kendi yığınını tutar. + ile ekle, kafaya dokun→adını değiştir, × ile sil.', target: '#boards' },
+      add:    { h: 'görev ekle', p: 'Boş yere dokun, bir şeyler yaz ve baloncuğu tamamla.', hint: 'Şimdi dene — boş bir yere dokun.', target: '#bubbles', cardTop: true },
+      popIntro: { h: 'patlatma', p: 'Biten bir görevi patlatmanın birkaç yolu var. Her birini bir deneme baloncuğunda yapalım.' },
+      try_hairswitch: { h: '1. yol · saç düğmesi', p: 'Saçtaki düğmeyle Patlat moduna geç, sonra baloncuğa dokun.', hint: 'Düğmeyi çevir, sonra baloncuğa dokun.', target: '.hair-hit' },
+      try_hold:      { h: '2. yol · 3 saniye tut', p: 'Baloncuğa basılı tut. 3 saniye sonra patlar.', hint: 'Baloncuğa basılı tut.', bubbleTarget: true, cardTop: true },
+      try_doubletap: { h: '3. yol · çift dokun', p: 'Baloncuğa hızlıca iki kez dokun.', hint: 'Baloncuğa çift dokun.', bubbleTarget: true, cardTop: true },
+      boards: { h: 'birden fazla kafa', p: 'İstediğin kadar kafa aç ve aralarında geç — her biri kendi yığınını tutar. + ekler, kafaya dokun→ad değiştir, × siler.', target: '#boards' },
       settings: { h: 'hatırlatıcı & takvim', p: 'Sağ üstteki dişli, tek seferlik veya tekrar eden hatırlatıcı eklediğin yer. O gün baloncuk olarak çıkarlar.', target: '#profileBtn' },
-      pick:   { h: 'nasıl patlatmak istersin?', p: 'Patlatma şeklini seç. Sonra ayarlardan değiştirebilirsin.' },
-      next: 'İleri', back: 'Geri', done: 'Bitti', skip: 'Geç', start: 'Başla'
+      pick:   { h: 'hangisini kullanmak istersin?', p: 'Patlatma şeklini seç. İstediğin zaman ayarlardan değiştirebilirsin.' },
+      nice: 'harika 🎉', next: 'İleri', back: 'Geri', done: 'Bitti', skip: 'Geç', practice: 'beni patlat'
     }
   };
   var MECH_LABELS = {
@@ -944,29 +934,58 @@
     }
   };
 
-  var tour = null;   // { kind, steps, i }
+  var tour = null;              // { kind, keys, i, poll, addBaseline, practiceId }
+  var practiceIds = [];
+  var practiceN = 0;
 
-  function tourStepList(kind) {
-    var T = TOUR[uiLang] || TOUR.en;
-    var list = kind === 'onboard'
-      ? ['intro', 'add', 'boards', 'settings', 'pick']
-      : ['intro', 'add', 'pop_' + popMechanic, 'boards', 'settings'];
-    return list.map(function (k) { return { key: k, data: T[k] }; });
+  function TT() { return TXT[uiLang] || TXT.en; }
+
+  function spawnPractice() {
+    practiceN += 1;
+    var id = 'pr-' + practiceN;
+    var task = { id: id, practice: true, text: TT().practice,
+      variant: ((practiceN - 1) % 3) + 1, r: 58, x: boxW / 2, y: 26 };
+    var entry = spawnBubble(task, { drop: true });
+    if (entry.body) entry.body.vy = 1.2;
+    practiceIds.push(id);
+    sim.wake();
+    return id;
+  }
+  function clearPractice() {
+    practiceIds.forEach(function (id) {
+      var e = bubbles.get(id);
+      if (!e) return;
+      e.el.remove();
+      if (e.body) sim.remove(e.body);
+      bubbles['delete'](id);
+    });
+    practiceIds = [];
+    sim.wake();
+  }
+
+  function stepKeys(kind) {
+    return kind === 'onboard'
+      ? ['intro', 'add', 'popIntro', 'try_hairswitch', 'try_hold', 'try_doubletap', 'pick']
+      : ['intro', 'add', ('try_' + popMechanic), 'boards', 'settings'];
   }
 
   function startTour(kind) {
     if (!tourEl) return;
-    tour = { kind: kind, steps: tourStepList(kind), i: 0 };
+    stopPoll();
+    clearPractice();
+    tour = { kind: kind, keys: stepKeys(kind), i: 0 };
     tourEl.hidden = false;
-    renderTourStep();
+    enterStep();
   }
   function endTour(finished) {
+    stopPoll();
+    clearPractice();
+    var wasOnboard = tour && tour.kind === 'onboard';
     tour = null;
-    if (tourEl) tourEl.hidden = true;
+    if (tourEl) { tourEl.hidden = true; tourEl.classList.remove('is-interactive', 'has-ring'); }
     if (tourRing) tourRing.hidden = true;
-    if (finished) {
+    if (finished && wasOnboard) {
       try { localStorage.setItem('patlat.onboarded', '1'); } catch (e) {}
-      // seed the starter bubbles now that the intro is done
       var s = false;
       try { s = !!localStorage.getItem('pop.seeded'); } catch (e) {}
       if (!s && activeBoardId) {
@@ -976,32 +995,100 @@
     }
   }
 
-  function positionTourRing(sel) {
-    var t = sel && document.querySelector(sel);
-    if (!t || !tourRing) { if (tourRing) tourRing.hidden = true; return; }
-    var r = t.getBoundingClientRect();
-    var pad = 8;
+  function stopPoll() { if (tour && tour.poll) { clearInterval(tour.poll); tour.poll = 0; } }
+
+  function goStep(i) {
+    if (!tour) return;
+    stopPoll();
+    clearPractice();
+    tour.i = Math.max(0, Math.min(tour.keys.length - 1, i));
+    enterStep();
+  }
+
+  function ringTo(elOrSel) {
+    var el = typeof elOrSel === 'string' ? document.querySelector(elOrSel) : elOrSel;
+    if (!el || !tourRing) { if (tourRing) tourRing.hidden = true; tourEl.classList.remove('has-ring'); return; }
+    var r = el.getBoundingClientRect(), pad = 8;
     tourRing.style.left = (r.left - pad) + 'px';
     tourRing.style.top = (r.top - pad) + 'px';
     tourRing.style.width = (r.width + pad * 2) + 'px';
     tourRing.style.height = (r.height + pad * 2) + 'px';
     tourRing.hidden = false;
+    tourEl.classList.add('has-ring');
   }
 
-  function renderTourStep() {
+  function enterStep() {
     if (!tour) return;
-    var T = TOUR[uiLang] || TOUR.en;
-    var step = tour.steps[tour.i];
-    var d = step.data || {};
-    positionTourRing(d.target);
+    var T = TT();
+    var key = tour.keys[tour.i];
+    var d = T[key] || {};
+    // interactive gated steps only during first-run onboarding
+    var interactive = tour.kind === 'onboard' && (key === 'add' || key.indexOf('try_') === 0);
 
-    var total = tour.steps.length;
+    tour.practiceId = null;
+    tourEl.classList.toggle('is-interactive', interactive);
+
+    if (interactive && key === 'add') {
+      tour.addBaseline = bubbles.size;
+      ringTo('#bubbles');
+    } else if (interactive && key === 'try_hairswitch') {
+      setPopMechanic('hairswitch');
+      tour.practiceId = spawnPractice();
+      ringTo('.hair-hit');
+    } else if (interactive && key === 'try_hold') {
+      setPopMechanic('hold');
+      tour.practiceId = spawnPractice();
+    } else if (interactive && key === 'try_doubletap') {
+      setPopMechanic('doubletap');
+      tour.practiceId = spawnPractice();
+    } else {
+      ringTo(d.target || null);
+    }
+
+    renderTourCard();
+
+    if (interactive) {
+      tour.poll = setInterval(function () {
+        if (!tour) return;
+        if (d.bubbleTarget && tour.practiceId) {
+          var pe = bubbles.get(tour.practiceId);
+          if (pe) ringTo(pe.el);
+        }
+        var done = key === 'add'
+          ? bubbles.size > (tour.addBaseline || 0)
+          : (tour.practiceId && !bubbles.has(tour.practiceId));
+        if (done) { stopPoll(); flashDoneThenNext(); }
+      }, 250);
+    }
+  }
+
+  function flashDoneThenNext() {
+    if (!tour) return;
+    var last = tour.i >= tour.keys.length - 1;
+    tourCard.innerHTML = '<h3>' + esc(TT().nice) + '</h3>';
+    setTimeout(function () {
+      if (!tour) return;
+      if (last) endTour(true); else goStep(tour.i + 1);
+    }, 700);
+  }
+
+  function renderTourCard() {
+    if (!tour) return;
+    var T = TT();
+    var key = tour.keys[tour.i];
+    var d = T[key] || {};
+    var interactive = tour.kind === 'onboard' && (key === 'add' || key.indexOf('try_') === 0);
+    var isLast = tour.i === tour.keys.length - 1;
+
+    tourCard.classList.toggle('tour__card--top', !!d.cardTop);
+
     var dots = '';
-    for (var k = 0; k < total; k++) dots += '<i class="' + (k === tour.i ? 'on' : '') + '"></i>';
+    for (var k = 0; k < tour.keys.length; k++) dots += '<i class="' + (k === tour.i ? 'on' : '') + '"></i>';
 
     var body = '<h3>' + esc(d.h || '') + '</h3><p>' + esc(d.p || '') + '</p>';
+    if (interactive && d.hint) body += '<p class="tour__hint">' + esc(d.hint) + '</p>';
 
-    if (step.key === 'pick') {
+    if (key === 'pick') {
       var ML = MECH_LABELS[uiLang] || MECH_LABELS.en;
       body += '<div class="tour__picks">';
       ['hairswitch', 'hold', 'doubletap', 'cactus', 'bin'].forEach(function (m) {
@@ -1013,12 +1100,14 @@
       body += '</div>';
     }
 
-    var isLast = tour.i === total - 1;
     body += '<div class="tour__row"><span class="tour__dots">' + dots + '</span><span class="tour__btns">';
     if (tour.i > 0) body += '<button type="button" class="tour__btn tour__btn--ghost" data-tour="back">' + esc(T.back) + '</button>';
-    if (tour.kind === 'help' && !isLast) body += '<button type="button" class="tour__btn tour__btn--ghost" data-tour="skip">' + esc(T.skip) + '</button>';
-    body += '<button type="button" class="tour__btn" data-tour="' + (isLast ? 'done' : 'next') + '">' +
-      esc(isLast ? T.done : T.next) + '</button>';
+    if (interactive && !isLast) body += '<button type="button" class="tour__btn tour__btn--ghost" data-tour="skipstep">' + esc(T.skip) + '</button>';
+    if (!interactive && tour.kind === 'help' && !isLast) body += '<button type="button" class="tour__btn tour__btn--ghost" data-tour="done">' + esc(T.skip) + '</button>';
+    if (!interactive) {
+      body += '<button type="button" class="tour__btn" data-tour="' + (isLast ? 'done' : 'next') + '">' +
+        esc(isLast ? T.done : T.next) + '</button>';
+    }
     body += '</span></div>';
 
     tourCard.innerHTML = body;
@@ -1027,15 +1116,15 @@
       b.addEventListener('click', function () {
         if (b.disabled) return;
         setPopMechanic(b.getAttribute('data-mech'));
-        renderTourStep();
+        renderTourCard();
       });
     });
     tourCard.querySelectorAll('[data-tour]').forEach(function (b) {
       b.addEventListener('click', function () {
         var a = b.getAttribute('data-tour');
-        if (a === 'back') { tour.i = Math.max(0, tour.i - 1); renderTourStep(); }
-        else if (a === 'skip' || a === 'done') { endTour(true); }
-        else { tour.i += 1; renderTourStep(); }
+        if (a === 'back') goStep(tour.i - 1);
+        else if (a === 'done') endTour(true);
+        else goStep(tour.i + 1);   // next / skipstep
       });
     });
   }
@@ -1046,7 +1135,12 @@
     });
   }
 
-  window.addEventListener('resize', function () { if (tour) renderTourStep(); });
+  window.addEventListener('resize', function () {
+    if (!tour) return;
+    var d = TT()[tour.keys[tour.i]] || {};
+    if (d.target) ringTo(d.target);
+    renderTourCard();
+  });
   if (helpBtn) helpBtn.addEventListener('click', function () { startTour('help'); });
 
   // ---- language: follows the browser, no UI ------------------------------------

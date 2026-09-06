@@ -114,22 +114,37 @@ html, body {
 .boards > * { pointer-events: auto; flex: 0 0 auto; }
 
 .board-tab {
+  position: relative;
   font-family: 'SwellTR', 'Times New Roman', Times, serif;
   font-size: 13px;
   line-height: 1;
-  padding: 7px 12px;
-  border: 1.5px solid #d7d7d7;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .92);
-  color: #8b8b8b;
+  padding: 9px 16px;
+  border: 0;
+  background: transparent;
+  color: #9a9a9a;
   white-space: nowrap;
   max-width: 42vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.board-tab.is-active { color: #111; border-color: #111; background: #fff; }
+.board-tab__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: #cfcfcf;                    /* hand-drawn frame, greyed for inactive */
+  overflow: visible;
+  pointer-events: none;
+}
+.board-tab__label {
+  position: relative;
+  display: block;
+  max-width: 38vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.board-tab.is-active { color: #111; }
+.board-tab.is-active .board-tab__frame { fill: #141414; }
 
 /* delete "x" — only rendered next to the active tab */
 .board-tab__x {
@@ -414,25 +429,6 @@ html, body {
 .profile-btn .ink { fill: #050304; }
 .profile-btn:active { transform: scale(.92); }
 
-/* first-run hint pointing at the settings button */
-.settings-hint {
-  position: absolute;
-  top: 27%;
-  right: 7%;
-  max-width: 54%;
-  margin: 0;
-  text-align: right;
-  font-family: 'Times New Roman', Times, serif;
-  font-style: italic;
-  font-size: 12.5px;
-  line-height: 1.4;
-  color: #8b8b8b;
-  z-index: 20;
-  pointer-events: none;
-  display: none;
-}
-.settings-hint.is-on { display: block; }
-
 /* ---- Instagram link (top-left, pink→purple) ---- */
 
 .ig-btn {
@@ -499,9 +495,9 @@ html, body {
 .help-btn {
   position: absolute;
   left: 5%;
-  bottom: 3.5%;
-  width: clamp(30px, 8vw, 42px);
-  height: clamp(30px, 8vw, 42px);
+  bottom: 7%;
+  width: clamp(40px, 11vw, 56px);
+  height: clamp(40px, 11vw, 56px);
   border: 0;
   background: transparent;
   padding: 0;
@@ -509,16 +505,17 @@ html, body {
   z-index: 30;
   -webkit-tap-highlight-color: transparent;
 }
-.help-btn__svg { display: block; width: 100%; height: 100%; fill: #050304; overflow: visible; }
+.help-btn__svg { display: block; width: 100%; height: 100%; fill: #2679c0; overflow: visible; }
 .help-btn:active { transform: scale(.92); }
 
 /* ---- guided tour / first-run onboarding ---- */
 
-.tour { position: fixed; inset: 0; z-index: 900; }
+.tour { position: fixed; inset: 0; z-index: 900; pointer-events: none; }
 .tour[hidden] { display: none; }
 .tour__scrim {
   position: absolute; inset: 0;
   background: rgba(12, 12, 14, .74);
+  pointer-events: auto;                 /* passive steps: block the app */
 }
 .tour__ring {
   position: absolute;
@@ -526,11 +523,23 @@ html, body {
   border-radius: 16px;
   box-shadow: 0 0 0 9999px rgba(12, 12, 14, .74);
   pointer-events: none;
-  transition: all .2s ease;
+  transition: all .18s ease;
 }
 .tour__ring[hidden] { display: none; }
-/* when a ring is shown, the plain scrim hides (the ring's box-shadow is the scrim) */
-.tour:has(.tour__ring:not([hidden])) .tour__scrim { display: none; }
+/* a targeted passive step: the ring's own shadow is the dim, drop the flat scrim */
+.tour.has-ring .tour__scrim { display: none; }
+
+/* interactive steps: let the app be used; ring is just a soft highlight */
+.tour.is-interactive { }
+.tour.is-interactive .tour__scrim {
+  display: block;
+  background: rgba(12, 12, 14, .34);
+  pointer-events: none;
+}
+.tour.is-interactive .tour__ring {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .85), 0 0 22px 6px rgba(38, 121, 192, .55);
+}
+.tour.is-interactive .tour__card--top { top: 11%; bottom: auto; }
 
 .tour__card {
   position: absolute;
@@ -544,7 +553,9 @@ html, body {
   padding: 18px 18px 14px;
   font-family: 'Times New Roman', Times, serif;
   box-shadow: 0 10px 40px rgba(0, 0, 0, .35);
+  pointer-events: auto;
 }
+.tour__hint { font-size: 12px; color: #2679c0; font-style: normal; margin: -6px 0 12px; }
 .tour__card h3 { margin: 0 0 6px; font-size: 16px; font-style: normal; }
 .tour__card p  { margin: 0 0 14px; font-size: 14px; line-height: 1.5; font-style: italic; color: #333; }
 .tour__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
