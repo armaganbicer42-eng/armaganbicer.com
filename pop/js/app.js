@@ -42,6 +42,7 @@
   var boards = [];             // [{ id, name, order, createdAt }]
   var activeBoardId = null;
   var renamingId = null;
+  var confirmDelId = null;     // board pending inline delete-confirmation
   var BOARD_KEY = 'patlat.activeBoard';
   var poly = [];               // collision polygon in .bubbles pixel space
   var boxW = 1, boxH = 1;
@@ -267,31 +268,26 @@
     if (!boardsEl) return;
     boardsEl.innerHTML = '';
     boardsSorted().forEach(function (b) {
-      if (renamingId === b.id) { boardsEl.appendChild(renameField(b)); return; }
+      if (renamingId === b.id)   { boardsEl.appendChild(renameField(b)); return; }
+      if (confirmDelId === b.id) { boardsEl.appendChild(deleteConfirm(b)); return; }
       var isActive = b.id === activeBoardId;
       var tab = document.createElement('button');
       tab.type = 'button';
       tab.className = 'board-tab' + (isActive ? ' is-active' : '');
-      var frame = useSvg('icon-tinyframe', 'board-tab__frame');
+      tab.appendChild(useSvg('icon-tinyframe', 'board-tab__frame'));
       var label = document.createElement('span');
       label.className = 'board-tab__label';
       label.textContent = b.name;
-      tab.appendChild(frame);
       tab.appendChild(label);
       tab.addEventListener('click', function () {
+        confirmDelId = null;
         if (isActive) startRename(b.id);
         else loadBoard(b.id);
       });
       boardsEl.appendChild(tab);
 
       if (isActive && boards.length > 1) {
-        var x = document.createElement('button');
-        x.type = 'button';
-        x.className = 'board-tab__x';
-        x.setAttribute('aria-label', uiLang === 'tr' ? 'Kafayı sil' : 'Delete board');
-        x.appendChild(useSvg('icon-tinycross'));
-        x.addEventListener('click', function (e) { e.stopPropagation(); deleteBoard(b); });
-        boardsEl.appendChild(x);
+        boardsEl.appendChild(makeDelX(b));
       }
     });
     var add = document.createElement('button');
@@ -303,31 +299,79 @@
     boardsEl.appendChild(add);
   }
 
-  function deleteBoard(b) {
-    if (boards.length <= 1) return;
-    var msg = uiLang === 'tr'
-      ? 'Bu kafayı ve içindeki her şeyi sil?'
-      : 'Delete this board and everything on it?';
-    if (!window.confirm(msg)) return;
-    renamingId = null;
-    var wasActive = b.id === activeBoardId;
-    Store.deleteBoard(b.id).then(function () {
-      boards = boards.filter(function (x) { return x.id !== b.id; });
-      if (wasActive) loadBoard(boardsSorted()[0].id);
-      else renderBoards();
+  function makeDelX(b) {
+    var x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'board-tab__x';
+    x.setAttribute('aria-label', uiLang === 'tr' ? 'Kafayı sil' : 'Delete board');
+    x.appendChild(useSvg('icon-tinycross'));
+    x.addEventListener('click', function (e) {
+      e.stopPropagation();
+      renamingId = null;
+      confirmDelId = b.id;
+      renderBoards();
     });
+    return x;
   }
 
-  function startRename(id) { renamingId = id; renderBoards(); }
+  // inline confirm — window.confirm() is unreliable inside app webviews
+  function deleteConfirm(b) {
+    var wrap = document.createElement('span');
+    wrap.className = 'board-confirm';
+    wrap.appendChild(useSvg('icon-tinyframe', 'board-tab__frame'));
+
+    var txt = document.createElement('span');
+    txt.className = 'board-confirm__txt';
+    txt.textContent = uiLang === 'tr' ? 'sil?' : 'delete?';
+
+    var yes = document.createElement('button');
+    yes.type = 'button';
+    yes.className = 'board-confirm__yes';
+    yes.setAttribute('aria-label', uiLang === 'tr' ? 'Sil' : 'Delete');
+    yes.appendChild(useSvg('icon-tick'));
+    yes.addEventListener('click', function (e) {
+      e.stopPropagation();
+      confirmDelId = null;
+      if (boards.length <= 1) { renderBoards(); return; }
+      var wasActive = b.id === activeBoardId;
+      Store.deleteBoard(b.id).then(function () {
+        boards = boards.filter(function (x) { return x.id !== b.id; });
+        if (wasActive) loadBoard(boardsSorted()[0].id);
+        else renderBoards();
+      });
+    });
+
+    var no = document.createElement('button');
+    no.type = 'button';
+    no.className = 'board-confirm__no';
+    no.setAttribute('aria-label', uiLang === 'tr' ? 'Vazgeç' : 'Cancel');
+    no.appendChild(useSvg('icon-tinycross'));
+    no.addEventListener('click', function (e) {
+      e.stopPropagation();
+      confirmDelId = null;
+      renderBoards();
+    });
+
+    wrap.appendChild(txt);
+    wrap.appendChild(yes);
+    wrap.appendChild(no);
+    return wrap;
+  }
+
+  function startRename(id) { renamingId = id; confirmDelId = null; renderBoards(); }
 
   function renameField(b) {
     var wrap = document.createElement('span');
     wrap.className = 'board-rename';
+    wrap.appendChild(useSvg('icon-tinyframe', 'board-tab__frame'));
 
     var input = document.createElement('input');
     input.className = 'board-rename__input';
+    input.type = 'text';
     input.value = b.name;
     input.maxLength = 24;
+    input.setAttribute('enterkeyhint', 'done');
+    input.setAttribute('autocomplete', 'off');
 
     var committed = false;
     function finish(name) {
@@ -343,24 +387,18 @@
     }
 
     input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); finish(input.value); }
+      if (e.isComposing) return;
+      if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); finish(input.value); }
       else if (e.key === 'Escape') { e.preventDefault(); committed = true; renamingId = null; renderBoards(); }
     });
+    // mobile soft keyboards / IME often commit via 'change' rather than a clean keydown
+    input.addEventListener('change', function () { finish(input.value); });
     input.addEventListener('blur', function () {
       setTimeout(function () { if (renamingId === b.id) finish(input.value); }, 120);
     });
 
     wrap.appendChild(input);
-    if (boards.length > 1) {
-      var x = document.createElement('button');
-      x.type = 'button';
-      x.className = 'board-tab__x';
-      x.setAttribute('aria-label', uiLang === 'tr' ? 'Kafayı sil' : 'Delete board');
-      x.appendChild(useSvg('icon-tinycross'));
-      x.addEventListener('pointerdown', function (e) { e.preventDefault(); });
-      x.addEventListener('click', function (e) { e.preventDefault(); committed = true; deleteBoard(b); });
-      wrap.appendChild(x);
-    }
+    if (boards.length > 1) wrap.appendChild(makeDelX(b));
     setTimeout(function () { input.focus(); input.select(); }, 0);
     return wrap;
   }
