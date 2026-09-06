@@ -369,9 +369,22 @@
     input.className = 'board-rename__input';
     input.type = 'text';
     input.value = b.name;
-    input.maxLength = 24;
+    input.maxLength = 24;                       // hard cap on the board name
     input.setAttribute('enterkeyhint', 'done');
     input.setAttribute('autocomplete', 'off');
+
+    // grow/shrink the box with the typed text (measured against a hidden mirror)
+    var mirror = document.createElement('span');
+    mirror.className = 'board-rename__input board-rename__mirror';
+    mirror.setAttribute('aria-hidden', 'true');
+    wrap.appendChild(mirror);
+    function autosize() {
+      if (input.value.length > 24) input.value = input.value.slice(0, 24);  // hard 24-char cap
+      mirror.textContent = input.value || '';
+      var w = mirror.offsetWidth + 1;
+      input.style.width = Math.min(w, Math.round(window.innerWidth * 0.6)) + 'px';
+    }
+    input.addEventListener('input', autosize);
 
     var committed = false;
     function finish(name) {
@@ -399,7 +412,7 @@
 
     wrap.appendChild(input);
     if (boards.length > 1) wrap.appendChild(makeDelX(b));
-    setTimeout(function () { input.focus(); input.select(); }, 0);
+    setTimeout(function () { input.focus(); input.select(); autosize(); }, 0);
     return wrap;
   }
 

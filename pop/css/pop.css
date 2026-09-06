@@ -187,12 +187,22 @@ html, body {
   z-index: 1;
   font-family: 'SwellTR', 'Times New Roman', Times, serif;
   font-size: 13px;
+  line-height: 1;
   padding: 0;
   border: 0;
   background: transparent;
   color: #111;
-  max-width: 38vw;
+  min-width: 3ch;
+  width: auto;                 /* JS sets an explicit px width from the mirror */
   outline: none;
+}
+.board-rename__mirror {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: pre;
+  min-width: 0;
+  left: 0; top: 0;
 }
 
 /* inline delete confirmation — red frame */
