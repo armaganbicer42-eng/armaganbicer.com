@@ -36,6 +36,21 @@ Yerelde çalıştırmak: repo kökünde `python3 -m http.server 4610` → taray�
 - `themes` tanımı (JS obje) + aktif tema id (kişi başına, satın almaya bağlı).
 - CSS custom property'leri tema ile set edilir; SVG çizim setleri değişebilir.
 
+### 1b. Onboarding + yardım + patlatma mekanikleri — ✅ YAPILDI
+- `reset` özelliği kaldırıldı (web'e özeldi). Temizleme artık kafa silme ile.
+- Kafa silme: aktif sekmenin yanında `tinycross` × (onaylı). `+` artık `tinyplus`.
+- **Patlatma mekaniği ayarı** (`patlat.popMechanic`): `hairswitch` (varsayılan) |
+  `hold` (3sn basılı tut) | `doubletap`. Ayarlar panelinde "HOW TO POP" bölümü.
+  `hold` sırasında baloncuk 3sn'de "şarj olur" (soluklaşır). Mekanik hairswitch
+  değilse Add/Pop modu kapalı, saç anahtarı etkisiz, mode-word gizli.
+- **`?` yardım butonu** (sol alt, `questionmark`) → rehberli tur (5 adım, mevcut
+  mekaniğe göre metin).
+- **İlk açılış onboarding'i**: karartılmış arka plan + hedefi çerçeveleyen halka +
+  adım kartları. Son adım mekanik seçtiriyor; "Bitti"de başlangıç baloncukları eklenir.
+- BEKLEYEN (asset lazım): `cactus` / `bin` mekanikleri + kafa içi kaktüs/çöp kovası
+  görselleri. `tinyframe` asset'i kopyalandı ama henüz kullanılmadı (sekme arka planı
+  için düşünülmüştü; düz pill şu an yeterli).
+
 ### 5. Bireysel kozmetik + fonksiyonel eklentiler
 - Kafanın içine yerleştirilebilen "aygıt"lar: kaktüs (balonu kaktüse
   patlatma), çöp kovası (balonu kovaya atma), vb.

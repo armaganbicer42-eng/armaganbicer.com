@@ -41,7 +41,15 @@
       freq: { none: 'Does not repeat', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly' },
       unit: { daily: 'day(s)', weekly: 'week(s)', monthly: 'month(s)', yearly: 'year(s)' },
       endsOpt: { never: 'Never', until: 'On date', count: 'After N times' },
-      times: 'times'
+      times: 'times',
+      mechTitle: 'How to pop',
+      mech: {
+        hairswitch: ['Add / Pop switch', 'Flip the hair switch, then tap done tasks'],
+        hold:       ['Hold 3 seconds', 'Press and hold a bubble to pop it'],
+        doubletap:  ['Double-tap', 'Double-tap a bubble to pop it'],
+        cactus:     ['Drag onto the cactus', 'coming soon'],
+        bin:        ['Drag into the bin', 'coming soon']
+      }
     },
     tr: {
       name: 'patlat', close: 'Kapat',
@@ -57,7 +65,15 @@
       freq: { none: 'Tekrar etmez', daily: 'Günlük', weekly: 'Haftalık', monthly: 'Aylık', yearly: 'Yıllık' },
       unit: { daily: 'gün', weekly: 'hafta', monthly: 'ay', yearly: 'yıl' },
       endsOpt: { never: 'Asla', until: 'Tarihte', count: 'N kez sonra' },
-      times: 'kez'
+      times: 'kez',
+      mechTitle: 'Nasıl patlatılır',
+      mech: {
+        hairswitch: ['Ekle / Patlat düğmesi', 'Saç düğmesini çevir, biten görevlere dokun'],
+        hold:       ['3 saniye basılı tut', 'Baloncuğa basılı tut, patlasın'],
+        doubletap:  ['Çift dokun', 'Baloncuğa çift dokun, patlasın'],
+        cactus:     ['Kaktüse sürükle', 'yakında'],
+        bin:        ['Çöp kovasına sürükle', 'yakında']
+      }
     }
   };
   var T = S_[LANG];
@@ -186,11 +202,13 @@
           '<h3>' + esc(T.account) + '</h3>' +
           '<p class="pp-muted">' + esc(T.accountSoon) + '</p>' +
         '</section>' +
+        '<section class="pp-sec pp-mech"></section>' +
         '<section class="pp-sec pp-body"></section>' +
       '</div>';
     document.body.appendChild(root);
     bodyEl = root.querySelector('.pp-body');
     root.querySelector('.pp-close').addEventListener('click', close);
+    renderMech();
 
     // if logo.svg isn't there, fall back to the plain name
     var logo = root.querySelector('.pp-logo');
@@ -202,8 +220,37 @@
     });
   }
 
+  function currentMechanic() {
+    var m;
+    try { m = localStorage.getItem('patlat.popMechanic'); } catch (e) {}
+    return ['hairswitch', 'hold', 'doubletap'].indexOf(m) >= 0 ? m : 'hairswitch';
+  }
+
+  function renderMech() {
+    var sec = root && root.querySelector('.pp-mech');
+    if (!sec) return;
+    var cur = currentMechanic();
+    var h = '<h3>' + esc(T.mechTitle) + '</h3><div class="mech-picks">';
+    ['hairswitch', 'hold', 'doubletap', 'cactus', 'bin'].forEach(function (m) {
+      var on = m === cur ? ' on' : '';
+      var dis = (m === 'cactus' || m === 'bin') ? ' disabled' : '';
+      h += '<button type="button" class="mech-pick' + on + '" data-mech="' + m + '"' + dis + '>' +
+        '<b>' + esc(T.mech[m][0]) + '</b><span>' + esc(T.mech[m][1]) + '</span></button>';
+    });
+    h += '</div>';
+    sec.innerHTML = h;
+    sec.querySelectorAll('[data-mech]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (b.disabled) return;
+        window.dispatchEvent(new CustomEvent('patlat:set-mechanic', { detail: b.getAttribute('data-mech') }));
+        renderMech();
+      });
+    });
+  }
+
   function open() {
     ensureDom();
+    renderMech();
     var now = new Date();
     view.open = true;
     view.y = now.getFullYear();

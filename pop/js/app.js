@@ -16,10 +16,19 @@
   var hairHit = document.getElementById('hairHit');
   var profileBtn = document.getElementById('profileBtn');
   var undoBtn = document.getElementById('undoBtn');
-  var resetBtn = document.getElementById('resetBtn');
-  var resetYes = document.getElementById('resetYes');
-  var resetNo = document.getElementById('resetNo');
+  var helpBtn = document.getElementById('helpBtn');
   var appEl = document.querySelector('.pop-app');
+
+  // how a bubble gets popped: 'hairswitch' | 'hold' | 'doubletap'
+  // ('cactus' / 'bin' need the in-head gadget art — listed but not yet wired)
+  var POP_MECH_KEY = 'patlat.popMechanic';
+  function readMechanic() {
+    var m;
+    try { m = localStorage.getItem(POP_MECH_KEY); } catch (e) {}
+    return ['hairswitch', 'hold', 'doubletap'].indexOf(m) >= 0 ? m : 'hairswitch';
+  }
+  var popMechanic = readMechanic();
+  var HOLD_MS = 3000;
 
   var undoStack = [];          // snapshots of popped tasks, newest last
   var UNDO_MAX = 30;
@@ -183,7 +192,18 @@
         try { saved = localStorage.getItem(BOARD_KEY); } catch (e) {}
         activeBoardId = boards.some(function (b) { return b.id === saved; })
           ? saved : boards[0].id;
-        return loadBoard(activeBoardId, { seedIfEmpty: true });
+
+        applyMechanic();
+
+        var onboarded = false;
+        try { onboarded = !!localStorage.getItem('patlat.onboarded'); } catch (e) {}
+        if (onboarded) {
+          return loadBoard(activeBoardId, { seedIfEmpty: true });
+        }
+        // first ever open: empty board + the guided intro; seed when it ends
+        return loadBoard(activeBoardId, { seedIfEmpty: false }).then(function () {
+          startTour('onboard');
+        });
       })
       .catch(function (err) { console.error('patlat failed to start', err); });
   }
@@ -238,28 +258,64 @@
     });
   }
 
+  var SVGNS_ = 'http://www.w3.org/2000/svg';
+  function useSvg(id, cls) {
+    var svg = document.createElementNS(SVGNS_, 'svg');
+    svg.setAttribute('class', cls || '');
+    var u = document.createElementNS(SVGNS_, 'use');
+    u.setAttribute('href', '#' + id);
+    svg.appendChild(u);
+    return svg;
+  }
+
   function renderBoards() {
     if (!boardsEl) return;
     boardsEl.innerHTML = '';
     boardsSorted().forEach(function (b) {
       if (renamingId === b.id) { boardsEl.appendChild(renameField(b)); return; }
+      var isActive = b.id === activeBoardId;
       var tab = document.createElement('button');
       tab.type = 'button';
-      tab.className = 'board-tab' + (b.id === activeBoardId ? ' is-active' : '');
+      tab.className = 'board-tab' + (isActive ? ' is-active' : '');
       tab.textContent = b.name;
       tab.addEventListener('click', function () {
-        if (b.id === activeBoardId) startRename(b.id);
+        if (isActive) startRename(b.id);
         else loadBoard(b.id);
       });
       boardsEl.appendChild(tab);
+
+      if (isActive && boards.length > 1) {
+        var x = document.createElement('button');
+        x.type = 'button';
+        x.className = 'board-tab__x';
+        x.setAttribute('aria-label', uiLang === 'tr' ? 'Kafayı sil' : 'Delete board');
+        x.appendChild(useSvg('icon-tinycross'));
+        x.addEventListener('click', function (e) { e.stopPropagation(); deleteBoard(b); });
+        boardsEl.appendChild(x);
+      }
     });
     var add = document.createElement('button');
     add.type = 'button';
     add.className = 'board-add';
     add.setAttribute('aria-label', uiLang === 'tr' ? 'Yeni kafa' : 'New board');
-    add.textContent = '+';
+    add.appendChild(useSvg('icon-tinyplus'));
     add.addEventListener('click', addBoard);
     boardsEl.appendChild(add);
+  }
+
+  function deleteBoard(b) {
+    if (boards.length <= 1) return;
+    var msg = uiLang === 'tr'
+      ? 'Bu kafayı ve içindeki her şeyi sil?'
+      : 'Delete this board and everything on it?';
+    if (!window.confirm(msg)) return;
+    renamingId = null;
+    var wasActive = b.id === activeBoardId;
+    Store.deleteBoard(b.id).then(function () {
+      boards = boards.filter(function (x) { return x.id !== b.id; });
+      if (wasActive) loadBoard(boardsSorted()[0].id);
+      else renderBoards();
+    });
   }
 
   function startRename(id) { renamingId = id; renderBoards(); }
@@ -272,11 +328,6 @@
     input.className = 'board-rename__input';
     input.value = b.name;
     input.maxLength = 24;
-
-    var del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'board-rename__del';
-    del.textContent = uiLang === 'tr' ? 'sil' : 'delete';
 
     var committed = false;
     function finish(name) {
@@ -299,26 +350,17 @@
       setTimeout(function () { if (renamingId === b.id) finish(input.value); }, 120);
     });
 
-    del.addEventListener('pointerdown', function (e) { e.preventDefault(); });
-    del.addEventListener('click', function (e) {
-      e.preventDefault();
-      committed = true;
-      if (boards.length <= 1) { renamingId = null; renderBoards(); return; }  // always keep one
-      var msg = uiLang === 'tr'
-        ? 'Bu kafayı ve içindeki her şeyi sil?'
-        : 'Delete this board and everything on it?';
-      if (!window.confirm(msg)) { renamingId = null; renderBoards(); return; }
-      renamingId = null;
-      var wasActive = b.id === activeBoardId;
-      Store.deleteBoard(b.id).then(function () {
-        boards = boards.filter(function (x) { return x.id !== b.id; });
-        if (wasActive) loadBoard(boardsSorted()[0].id);
-        else renderBoards();
-      });
-    });
-
     wrap.appendChild(input);
-    wrap.appendChild(del);
+    if (boards.length > 1) {
+      var x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'board-tab__x';
+      x.setAttribute('aria-label', uiLang === 'tr' ? 'Kafayı sil' : 'Delete board');
+      x.appendChild(useSvg('icon-tinycross'));
+      x.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+      x.addEventListener('click', function (e) { e.preventDefault(); committed = true; deleteBoard(b); });
+      wrap.appendChild(x);
+    }
     setTimeout(function () { input.focus(); input.select(); }, 0);
     return wrap;
   }
@@ -435,20 +477,51 @@
 
   function attachPointer(entry) {
     var el = entry.el, body = entry.body;
-    var lastX = 0, lastY = 0;
+    var lastX = 0, lastY = 0, downX = 0, downY = 0;
+    var holdTimer = 0, lastTap = 0, moved = false;
+
+    function clearHold() {
+      if (holdTimer) { clearTimeout(holdTimer); holdTimer = 0; }
+      el.classList.remove('bubble--charging');
+    }
 
     el.addEventListener('pointerdown', function (e) {
-      if (mode === 'pop') { pop(entry); return; }
+      // hair-switch mechanic: Pop mode taps pop straight away
+      if (popMechanic === 'hairswitch' && mode === 'pop') { pop(entry); return; }
+
+      // double-tap mechanic
+      if (popMechanic === 'doubletap') {
+        var now = e.timeStamp || Date.now();
+        if (now - lastTap < 320) { lastTap = 0; pop(entry); return; }
+        lastTap = now;
+      }
+
       if (!body) return;
       e.stopPropagation();
       try { el.setPointerCapture(e.pointerId); } catch (err) {}
       el.classList.add('bubble--held');
       body.held = true;
-      lastX = e.clientX; lastY = e.clientY;
+      moved = false;
+      lastX = downX = e.clientX; lastY = downY = e.clientY;
       sim.wake();
+
+      // hold-to-pop mechanic: 3s still press -> pop
+      if (popMechanic === 'hold') {
+        el.classList.add('bubble--charging');
+        holdTimer = setTimeout(function () {
+          holdTimer = 0;
+          body.held = false;
+          el.classList.remove('bubble--held', 'bubble--charging');
+          pop(entry);
+        }, HOLD_MS);
+      }
     });
     el.addEventListener('pointermove', function (e) {
       if (!body || !body.held) return;
+      if (!moved && Math.hypot(e.clientX - downX, e.clientY - downY) > 8) {
+        moved = true;
+        clearHold();                 // a drag cancels a pending hold-pop
+      }
       var rect = bubblesEl.getBoundingClientRect();
       body.x = e.clientX - rect.left;
       body.y = e.clientY - rect.top;
@@ -456,14 +529,17 @@
       body.vy = (e.clientY - lastY) * 0.5;
       lastX = e.clientX; lastY = e.clientY;
     });
-    el.addEventListener('pointerup', function (e) {
+    function endPress(e) {
+      clearHold();
       if (!body || !body.held) return;
       body.held = false;
       el.classList.remove('bubble--held');
       try { el.releasePointerCapture(e.pointerId); } catch (err) {}
       sim.wake();
       savePositionsSoon();
-    });
+    }
+    el.addEventListener('pointerup', endPress);
+    el.addEventListener('pointercancel', endPress);
   }
 
   var GROW_MS = 260;   // burst grows from a dot to the bubble's full diameter
@@ -744,6 +820,7 @@
   // ---- the hair switch -------------------------------------------------------
 
   hairHit.addEventListener('click', function () {
+    if (popMechanic !== 'hairswitch') return;   // no Add/Pop mode with other mechanics
     setMode(mode === 'add' ? 'pop' : 'add');
   });
 
@@ -793,45 +870,184 @@
     });
   }
 
-  // ---- reset: wipe saved data, with a tick / cross confirmation --------------
-
-  if (resetBtn) {
-    resetBtn.addEventListener('click', function () {
-      appEl.classList.add('confirm-reset');
-    });
-  }
-  if (resetNo) {
-    resetNo.addEventListener('click', function () {
-      appEl.classList.remove('confirm-reset');
-    });
-  }
-  if (resetYes) {
-    resetYes.addEventListener('click', function () {
-      resetYes.disabled = true;
-      Promise.resolve()
-        .then(function () { return Store.clear(); })
-        .catch(function () {})
-        .then(function () {
-          try {
-            localStorage.removeItem('pop.seeded');
-            localStorage.removeItem('patlat.settingsSeen');  // bring the hint back
-            localStorage.removeItem('patlat.evdone');
-            localStorage.removeItem('patlat.activeBoard');
-          } catch (e) {}
-          location.reload();
-        });
-    });
-  }
-
   function setMode(next) {
     if (draft) commitDraft();
-    appEl.classList.remove('confirm-reset');   // drop any pending reset prompt
     mode = next;
     var isPop = mode === 'pop';
     appEl.classList.toggle('mode-pop', isPop);
     appEl.classList.toggle('mode-add', !isPop);
     hairHit.setAttribute('aria-checked', String(isPop));
   }
+
+  // ---- pop mechanic ---------------------------------------------------------
+
+  function applyMechanic() {
+    var hs = popMechanic === 'hairswitch';
+    appEl.classList.toggle('mech-hairswitch', hs);
+    appEl.classList.toggle('mech-gesture', !hs);
+    if (!hs && mode === 'pop') setMode('add');   // no Pop mode without the switch
+  }
+  function setPopMechanic(m) {
+    if (['hairswitch', 'hold', 'doubletap'].indexOf(m) < 0) return;
+    popMechanic = m;
+    try { localStorage.setItem(POP_MECH_KEY, m); } catch (e) {}
+    applyMechanic();
+  }
+  window.addEventListener('patlat:set-mechanic', function (e) {
+    if (e && e.detail) setPopMechanic(e.detail);
+  });
+
+  // ---- guided tour / first-run onboarding ---------------------------------
+
+  var tourEl = document.getElementById('tour');
+  var tourCard = document.getElementById('tourCard');
+  var tourRing = document.getElementById('tourRing');
+
+  var TOUR = {
+    en: {
+      intro:  { h: 'this is patlat', p: 'A place to dump the small stuff you keep forgetting. Each task is a bubble that piles up. Pop the ones you’ve done.' },
+      add:    { h: 'add a task', p: 'Tap any empty space and type. The bubble drops in and joins the pile. Drag bubbles around however you like.', target: '#bubbles' },
+      pop_hairswitch: { h: 'pop a task', p: 'Flip the switch in the hair to enter Pop mode, then tap a task you’ve finished — it bursts.', target: '.hair-hit' },
+      pop_hold:       { h: 'pop a task', p: 'Press and hold a bubble for 3 seconds and it pops.' },
+      pop_doubletap:  { h: 'pop a task', p: 'Double-tap a bubble and it pops.' },
+      boards: { h: 'many heads', p: 'Open as many boards as you want and switch between them — each keeps its own pile. Tap +, tap a board to rename, tap × to delete.', target: '#boards' },
+      settings: { h: 'reminders & calendar', p: 'The gear, top right, is where you add one-off or repeating reminders. They pop up as bubbles on their day.', target: '#profileBtn' },
+      pick:   { h: 'how do you want to pop?', p: 'Pick the popping style. You can change it later in settings.' },
+      next: 'Next', back: 'Back', done: 'Done', skip: 'Skip', start: 'Start'
+    },
+    tr: {
+      intro:  { h: 'bu patlat', p: 'Sürekli unuttuğun küçük işleri atıp rahatladığın yer. Her görev bir baloncuk, yığılırlar. Bitirdiklerini patlat.' },
+      add:    { h: 'görev ekle', p: 'Boş bir yere dokun ve yaz. Baloncuk düşer, yığına katılır. Baloncukları istediğin gibi sürükle.', target: '#bubbles' },
+      pop_hairswitch: { h: 'görevi patlat', p: 'Saçtaki düğmeyle Patlat moduna geç, sonra bitirdiğin göreve dokun — patlar.', target: '.hair-hit' },
+      pop_hold:       { h: 'görevi patlat', p: 'Bir baloncuğa 3 saniye basılı tut, patlar.' },
+      pop_doubletap:  { h: 'görevi patlat', p: 'Bir baloncuğa çift dokun, patlar.' },
+      boards: { h: 'birden fazla kafa', p: 'İstediğin kadar kafa aç ve aralarında geç — her biri kendi yığınını tutar. + ile ekle, kafaya dokun→adını değiştir, × ile sil.', target: '#boards' },
+      settings: { h: 'hatırlatıcı & takvim', p: 'Sağ üstteki dişli, tek seferlik veya tekrar eden hatırlatıcı eklediğin yer. O gün baloncuk olarak çıkarlar.', target: '#profileBtn' },
+      pick:   { h: 'nasıl patlatmak istersin?', p: 'Patlatma şeklini seç. Sonra ayarlardan değiştirebilirsin.' },
+      next: 'İleri', back: 'Geri', done: 'Bitti', skip: 'Geç', start: 'Başla'
+    }
+  };
+  var MECH_LABELS = {
+    en: {
+      hairswitch: ['Add / Pop switch', 'Flip the hair switch, then tap done tasks'],
+      hold:       ['Hold 3 seconds', 'Press and hold a bubble to pop it'],
+      doubletap:  ['Double-tap', 'Double-tap a bubble to pop it'],
+      cactus:     ['Drag onto the cactus', 'coming soon'],
+      bin:        ['Drag into the bin', 'coming soon']
+    },
+    tr: {
+      hairswitch: ['Ekle / Patlat düğmesi', 'Saç düğmesini çevir, biten görevlere dokun'],
+      hold:       ['3 saniye basılı tut', 'Baloncuğa basılı tut, patlasın'],
+      doubletap:  ['Çift dokun', 'Baloncuğa çift dokun, patlasın'],
+      cactus:     ['Kaktüse sürükle', 'yakında'],
+      bin:        ['Çöp kovasına sürükle', 'yakında']
+    }
+  };
+
+  var tour = null;   // { kind, steps, i }
+
+  function tourStepList(kind) {
+    var T = TOUR[uiLang] || TOUR.en;
+    var list = kind === 'onboard'
+      ? ['intro', 'add', 'boards', 'settings', 'pick']
+      : ['intro', 'add', 'pop_' + popMechanic, 'boards', 'settings'];
+    return list.map(function (k) { return { key: k, data: T[k] }; });
+  }
+
+  function startTour(kind) {
+    if (!tourEl) return;
+    tour = { kind: kind, steps: tourStepList(kind), i: 0 };
+    tourEl.hidden = false;
+    renderTourStep();
+  }
+  function endTour(finished) {
+    tour = null;
+    if (tourEl) tourEl.hidden = true;
+    if (tourRing) tourRing.hidden = true;
+    if (finished) {
+      try { localStorage.setItem('patlat.onboarded', '1'); } catch (e) {}
+      // seed the starter bubbles now that the intro is done
+      var s = false;
+      try { s = !!localStorage.getItem('pop.seeded'); } catch (e) {}
+      if (!s && activeBoardId) {
+        seedTasks().then(function () { return Store.getTasks(activeBoardId); })
+          .then(function (tasks) { tasks.forEach(function (t) { spawnBubble(t, { drop: false }); }); sim.wake(); });
+      }
+    }
+  }
+
+  function positionTourRing(sel) {
+    var t = sel && document.querySelector(sel);
+    if (!t || !tourRing) { if (tourRing) tourRing.hidden = true; return; }
+    var r = t.getBoundingClientRect();
+    var pad = 8;
+    tourRing.style.left = (r.left - pad) + 'px';
+    tourRing.style.top = (r.top - pad) + 'px';
+    tourRing.style.width = (r.width + pad * 2) + 'px';
+    tourRing.style.height = (r.height + pad * 2) + 'px';
+    tourRing.hidden = false;
+  }
+
+  function renderTourStep() {
+    if (!tour) return;
+    var T = TOUR[uiLang] || TOUR.en;
+    var step = tour.steps[tour.i];
+    var d = step.data || {};
+    positionTourRing(d.target);
+
+    var total = tour.steps.length;
+    var dots = '';
+    for (var k = 0; k < total; k++) dots += '<i class="' + (k === tour.i ? 'on' : '') + '"></i>';
+
+    var body = '<h3>' + esc(d.h || '') + '</h3><p>' + esc(d.p || '') + '</p>';
+
+    if (step.key === 'pick') {
+      var ML = MECH_LABELS[uiLang] || MECH_LABELS.en;
+      body += '<div class="tour__picks">';
+      ['hairswitch', 'hold', 'doubletap', 'cactus', 'bin'].forEach(function (m) {
+        var on = m === popMechanic ? ' on' : '';
+        var dis = (m === 'cactus' || m === 'bin') ? ' disabled' : '';
+        body += '<button type="button" class="tour__pick' + on + '" data-mech="' + m + '"' + dis + '>' +
+          '<b>' + esc(ML[m][0]) + '</b><span>' + esc(ML[m][1]) + '</span></button>';
+      });
+      body += '</div>';
+    }
+
+    var isLast = tour.i === total - 1;
+    body += '<div class="tour__row"><span class="tour__dots">' + dots + '</span><span class="tour__btns">';
+    if (tour.i > 0) body += '<button type="button" class="tour__btn tour__btn--ghost" data-tour="back">' + esc(T.back) + '</button>';
+    if (tour.kind === 'help' && !isLast) body += '<button type="button" class="tour__btn tour__btn--ghost" data-tour="skip">' + esc(T.skip) + '</button>';
+    body += '<button type="button" class="tour__btn" data-tour="' + (isLast ? 'done' : 'next') + '">' +
+      esc(isLast ? T.done : T.next) + '</button>';
+    body += '</span></div>';
+
+    tourCard.innerHTML = body;
+
+    tourCard.querySelectorAll('[data-mech]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (b.disabled) return;
+        setPopMechanic(b.getAttribute('data-mech'));
+        renderTourStep();
+      });
+    });
+    tourCard.querySelectorAll('[data-tour]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var a = b.getAttribute('data-tour');
+        if (a === 'back') { tour.i = Math.max(0, tour.i - 1); renderTourStep(); }
+        else if (a === 'skip' || a === 'done') { endTour(true); }
+        else { tour.i += 1; renderTourStep(); }
+      });
+    });
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  window.addEventListener('resize', function () { if (tour) renderTourStep(); });
+  if (helpBtn) helpBtn.addEventListener('click', function () { startTour('help'); });
 
   // ---- language: follows the browser, no UI ------------------------------------
 
