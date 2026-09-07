@@ -194,8 +194,8 @@
     root.id = 'profilePanel';
     root.innerHTML =
       '<div class="pp-bar">' +
-        '<img class="pp-logo" src="/pop/assets/logo.svg?v=54" alt="' + esc(T.name) + '">' +
-        '<button type="button" class="pp-close">' + esc(T.close) + '</button>' +
+        '<span class="pp-bar__title">' + esc(T.name) + '</span>' +
+        '<button type="button" class="pp-close" aria-label="' + esc(T.close) + '">✕</button>' +
       '</div>' +
       '<div class="pp-scroll">' +
         '<section class="pp-sec pp-account">' +
@@ -209,15 +209,6 @@
     bodyEl = root.querySelector('.pp-body');
     root.querySelector('.pp-close').addEventListener('click', close);
     renderMech();
-
-    // if logo.svg isn't there, fall back to the plain name
-    var logo = root.querySelector('.pp-logo');
-    logo.addEventListener('error', function () {
-      var name = document.createElement('strong');
-      name.className = 'pp-name';
-      name.textContent = T.name;
-      logo.replaceWith(name);
-    });
   }
 
   function currentMechanic() {
