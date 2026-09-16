@@ -10,7 +10,7 @@
       shopHeading: "Couldn't find it, so I made it",
       item1Name: 'Chill Wall Lamp',
       item2Name: 'This Is Fine (F*ck) Pillow',
-      shopCta: 'coming soon to the shop',
+      shopCta: 'the wall lamp is live &rarr;',
       collabHeading: "let's collaborate",
       collabCopy: 'For brand collabs, events, or anything else &mdash; reach out.',
       collabCta: 'get in touch &rarr;',
@@ -37,7 +37,12 @@
       appCta: 'the app I built to get rid of the things cluttering my mind',
       productBack: '&larr; back to shop',
       lampTitle: 'Chill Wall Lamp',
-      lampDesc: 'A soft wall lamp with a hand-drawn "chill" illustration &mdash; warm light for the moments you\'re doing absolutely nothing, on purpose.'
+      lampDesc: 'A rechargeable wall lamp with a hand-drawn illustration on the front panel and a simple on/off switch. Comes in 10 different scene designs and 5 base colors &mdash; mix and match to fit your space. Mounting holes are built into the back, though double-sided tape works just as well.',
+      lampColorsLabel: 'base colors',
+      lampDesignsLabel: '10 scene designs to choose from',
+      lampNote: 'Just leave your design (up to 2) and color choice in the order note at checkout.',
+      lampBuyCta: 'buy on Shopier &rarr;',
+      lampNoteLink: 'psst &mdash; the chill wall lamp is live in the shop now &rarr;'
     },
     tr: {
       tag1: 'Topluluk<br />Kurucusu',
@@ -49,7 +54,7 @@
       shopHeading: 'Neden yok diyip yaptığım şeyler',
       item1Name: 'Chill Duvar Lambası',
       item2Name: 'This Is Fine (F*ck) Pillow',
-      shopCta: 'yakında satışa sunulacak',
+      shopCta: 'duvar lambası satışta &rarr;',
       collabHeading: 'hadi işbirliği yapalım',
       collabCopy: 'Marka iş birlikleri, etkinlikler veya başka her şey için &mdash; bana ulaş.',
       collabCta: 'iletişime geç &rarr;',
@@ -76,7 +81,12 @@
       appCta: 'kafamı şişiren şeylerden kurtulmak için geliştirdiğim uygulama',
       productBack: '&larr; mağazaya dön',
       lampTitle: 'Chill Duvar Lambası',
-      lampDesc: 'Elle çizilmiş "chill" illüstrasyonlu, yumuşak ışıklı bir duvar lambası &mdash; bilinçli olarak hiçbir şey yapmadığın anlar için.'
+      lampDesc: 'Ön panelinde elle çizilmiş bir illüstrasyon bulunan, şarj edilebilir bir duvar lambası &mdash; basit bir açma/kapama anahtarıyla. 10 farklı sahne tasarımı ve 5 farklı gövde rengiyle geliyor, istediğin kombinasyonu seçebilirsin. Arkasında montaj delikleri var, ama çift taraflı bant da gayet iyi çalışıyor.',
+      lampColorsLabel: 'gövde renkleri',
+      lampDesignsLabel: 'seçebileceğin 10 sahne tasarımı',
+      lampNote: 'Sipariş notuna tercih ettiğin tasarım(lar)ı (en fazla 2) ve rengi yazman yeterli.',
+      lampBuyCta: "Shopier'dan satın al &rarr;",
+      lampNoteLink: 'bu arada &mdash; chill duvar lambası artık mağazada, satışta &rarr;'
     }
   };
 
