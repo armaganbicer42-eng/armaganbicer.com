@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patlat — Support</title>
+<meta name="description" content="Get help with Patlat, the bubble-based task app.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Armi';
+    src: url('fonts/ArmiRegular.ttf') format('truetype');
+    font-display: swap;
+  }
+</style>
+<style>
+  :root {
+    --ink: #111111;
+    --paper: #FFFFFF;
+    --muted: #5b5b58;
+    --border: #e2e2de;
+    --orange: #FF7A1A;
+    --orange-tint: #FFE7D3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #F2F0EA;
+      --paper: #171613;
+      --muted: #a8a59c;
+      --border: #35332c;
+      --orange: #FF9142;
+      --orange-tint: #3a2a1a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #F2F0EA;
+    --paper: #171613;
+    --muted: #a8a59c;
+    --border: #35332c;
+    --orange: #FF9142;
+    --orange-tint: #3a2a1a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Courier Prime', ui-monospace, monospace;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 56px 24px 96px; }
+  header.top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 40px; flex-wrap: wrap; gap: 10px; }
+  .word { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-size: 26px; font-weight: 700; color: var(--ink); text-decoration: none; }
+  nav.legalnav { display: flex; gap: 18px; font-size: 13px; }
+  nav.legalnav a { color: var(--muted); text-decoration: none; border-bottom: 1px solid transparent; }
+  nav.legalnav a:hover, nav.legalnav a[aria-current] { color: var(--ink); border-bottom-color: var(--ink); }
+  h1 { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-size: 34px; margin: 0 0 6px; line-height: 1.15; }
+  .updated { color: var(--muted); font-size: 13px; margin: 0 0 32px; }
+  .tldr {
+    background: var(--orange-tint);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 40px;
+    font-size: 15px;
+  }
+  .tldr strong { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-weight: 700; }
+  h2 { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-size: 21px; margin: 40px 0 12px; }
+  p, li { font-size: 15px; color: var(--ink); }
+  a { color: var(--orange); }
+  .contact-box {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  .faq-item { margin-bottom: 26px; }
+  .faq-q { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-size: 16px; font-weight: 700; margin: 0 0 6px; }
+  .faq-a { margin: 0; color: var(--ink); }
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="word" href="./">patlat</a>
+      <nav class="legalnav">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="support.html" aria-current="page">Support</a>
+      </nav>
+    </header>
+
+    <h1>Support</h1>
+    <p class="updated">Here to help</p>
+
+    <div class="tldr">
+      Something not working, or just have a question? Email us directly — a real person
+      (me) reads every message.
+    </div>
+
+    <div class="contact-box">
+      Armağan Biçer<br>
+      <a href="mailto:armagan@notwork.me">armagan@notwork.me</a><br>
+      <span style="color:var(--muted); font-size: 13px;">Usually replies within 2–3 days.</span>
+    </div>
+
+    <h2>Common questions</h2>
+
+    <div class="faq-item">
+      <p class="faq-q">I bought Premium but it's not showing as unlocked.</p>
+      <p class="faq-a">Open the menu (the icon top-right) and tap the Premium pill, then
+        <strong>Restore Purchases</strong>. This re-checks your Apple/Google account for a
+        purchase that's already been made and re-applies it on this device.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">How do I turn off reminder notifications?</p>
+      <p class="faq-a">Notifications for reminders you've created can be turned off in your
+        device's own system Settings for Patlat, under Notifications.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">How do I delete a headspace, or all my data?</p>
+      <p class="faq-a">Open the menu → Settings → Headspaces to remove a single headspace, or
+        <strong>Reset everything</strong> at the bottom of Settings to erase all bubbles,
+        headspaces, and reminders on this device.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">Does my data sync between devices?</p>
+      <p class="faq-a">Not yet — everything in Patlat is stored only on the device you're using.
+        See our <a href="privacy.html">Privacy Policy</a> for details.</p>
+    </div>
+
+    <div class="faq-item">
+      <p class="faq-q">I want a refund.</p>
+      <p class="faq-a">Purchases are processed by Apple or Google, so refunds have to go
+        through them directly — we can't issue refunds ourselves. On iOS:
+        <a href="https://reportaproblem.apple.com/" target="_blank" rel="noopener">reportaproblem.apple.com</a>.
+        On Android: Google Play Store → Order History → find Patlat → Request a refund.</p>
+    </div>
+
+    <footer>Patlat — Support</footer>
+  </div>
+</body>
+</html>

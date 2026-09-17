@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patlat — Privacy Policy</title>
+<meta name="description" content="Privacy Policy for Patlat, the bubble-based task app.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Armi';
+    src: url('fonts/ArmiRegular.ttf') format('truetype');
+    font-display: swap;
+  }
+</style>
+<style>
+  :root {
+    --ink: #111111;
+    --paper: #FFFFFF;
+    --muted: #5b5b58;
+    --border: #e2e2de;
+    --orange: #FF7A1A;
+    --orange-tint: #FFE7D3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #F2F0EA;
+      --paper: #171613;
+      --muted: #a8a59c;
+      --border: #35332c;
+      --orange: #FF9142;
+      --orange-tint: #3a2a1a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #F2F0EA;
+    --paper: #171613;
+    --muted: #a8a59c;
+    --border: #35332c;
+    --orange: #FF9142;
+    --orange-tint: #3a2a1a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Courier Prime', ui-monospace, monospace;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 56px 24px 96px; }
+  header.top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 40px; flex-wrap: wrap; gap: 10px; }
+  .word { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-size: 26px; font-weight: 700; color: var(--ink); text-decoration: none; }
+  nav.legalnav { display: flex; gap: 18px; font-size: 13px; }
+  nav.legalnav a { color: var(--muted); text-decoration: none; border-bottom: 1px solid transparent; }
+  nav.legalnav a:hover, nav.legalnav a[aria-current] { color: var(--ink); border-bottom-color: var(--ink); }
+  h1 { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-size: 34px; margin: 0 0 6px; line-height: 1.15; }
+  .updated { color: var(--muted); font-size: 13px; margin: 0 0 32px; }
+  .tldr {
+    background: var(--orange-tint);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 40px;
+    font-size: 15px;
+  }
+  .tldr strong { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-weight: 700; }
+  h2 { font-family: 'Armi', 'Shantell Sans', 'Comic Sans MS', cursive; font-size: 21px; margin: 40px 0 12px; }
+  p, li { font-size: 15px; color: var(--ink); }
+  ul { padding-left: 22px; }
+  li { margin: 6px 0; }
+  a { color: var(--orange); }
+  code { background: var(--orange-tint); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; }
+  .contact-box {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 16px;
+  }
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="word" href="./">patlat</a>
+      <nav class="legalnav">
+        <a href="privacy.html" aria-current="page">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="support.html">Support</a>
+      </nav>
+    </header>
+
+    <h1>Privacy Policy</h1>
+    <p class="updated">Effective September 17, 2026</p>
+
+    <div class="tldr">
+      <strong>The short version:</strong> Patlat doesn't collect your data. Everything you write —
+      every bubble, headspace, and reminder — stays on your device. We don't have a server that
+      sees it, and we don't run analytics or ad trackers of any kind.
+    </div>
+
+    <h2>Information we don't collect</h2>
+    <p>Patlat has no user accounts, no sign-in, and no cloud sync. We don't use analytics
+      software, advertising SDKs, or tracking pixels of any kind. We don't know who you are,
+      what you write in your bubbles, or how you use the app — because none of that ever
+      leaves your device.</p>
+
+    <h2>Information stored on your device</h2>
+    <p>Everything you create in Patlat is stored locally, using your device's own on-device
+      storage:</p>
+    <ul>
+      <li>Your bubbles (tasks) and the headspaces you organize them into</li>
+      <li>Calendar reminders you create</li>
+      <li>Photos you attach to a bubble</li>
+      <li>Your app preferences (popping mode, sound/haptics, cosmetics, language)</li>
+    </ul>
+    <p>None of this is transmitted to us or to any third party. If you delete the app, or use
+      <strong>Reset everything</strong> in Settings, this data is gone for good — we have no
+      copy of it to restore.</p>
+
+    <h2>Permissions Patlat asks for</h2>
+    <p>iOS and Android will ask your permission before Patlat can use any of the following.
+      Each is used only for the feature described, entirely on your device:</p>
+    <ul>
+      <li><strong>Camera</strong> — only when you choose to take a photo to attach to a bubble.</li>
+      <li><strong>Photo Library</strong> — to let you pick an existing photo for a bubble, or save
+        one you've added back to your library.</li>
+      <li><strong>Motion &amp; Fitness</strong> — to detect when you shake your phone, which
+        jiggles the bubbles on screen.</li>
+      <li><strong>Notifications</strong> — to send you the reminders you've scheduled in the
+        Calendar tab. These are scheduled and delivered entirely on your device.</li>
+    </ul>
+
+    <h2>In-app purchases</h2>
+    <p>Patlat offers an optional one-time <strong>Lifetime</strong> purchase that unlocks premium
+      features. This purchase is processed by Apple's App Store (or Google Play on Android) —
+      Patlat never sees your payment details, name, or Apple/Google account information.</p>
+    <p>To validate and manage your purchase, Patlat uses
+      <a href="https://www.revenuecat.com/" target="_blank" rel="noopener">RevenueCat</a>, a
+      third-party subscription/purchase-management service. RevenueCat may receive an
+      anonymous, app-generated device identifier and the purchase/transaction data needed to
+      confirm your entitlement. It does not receive your name, email address, or payment
+      information. See
+      <a href="https://www.revenuecat.com/privacy/" target="_blank" rel="noopener">RevenueCat's
+      Privacy Policy</a> for details on how they handle this data.</p>
+
+    <h2>Children's privacy</h2>
+    <p>Patlat is a general-audience app and is not directed at children under 13. We do not
+      knowingly collect personal information from children. Since Patlat collects no personal
+      information from anyone, this is true for users of every age.</p>
+
+    <h2>Data deletion</h2>
+    <p>Because Patlat keeps everything on your device and nothing on a server, there is no
+      remote copy of your data for us to delete. You are always in full control:</p>
+    <ul>
+      <li>Use <code>Settings → Reset everything</code> to erase all bubbles, headspaces, and
+        reminders on this device.</li>
+      <li>Uninstalling the app removes all of its local data as well.</li>
+    </ul>
+
+    <h2>Changes to this policy</h2>
+    <p>If this policy changes, we'll update the effective date above and post the new version
+      at this same address. We won't make changes that reduce your rights without clear notice.</p>
+
+    <h2>Contact us</h2>
+    <p>Questions about this policy, or about your data? Reach out any time.</p>
+    <div class="contact-box">
+      Armağan Biçer<br>
+      <a href="mailto:armagan@notwork.me">armagan@notwork.me</a>
+    </div>
+
+    <footer>Patlat — Privacy Policy — Effective September 17, 2026</footer>
+  </div>
+</body>
+</html>
