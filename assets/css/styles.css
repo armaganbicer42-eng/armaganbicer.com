@@ -480,6 +480,25 @@ body.product-page {
   margin-top: 10px;
 }
 
+.updates-list__more a {
+  text-decoration: underline;
+}
+
+.pm-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.pm-list li {
+  font-size: clamp(15px, 1.4vw, 19px);
+  line-height: 1.6;
+}
+
 @media (max-width: 900px) {
   .page-nav,
   .updates-header,
