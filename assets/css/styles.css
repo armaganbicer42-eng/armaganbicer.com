@@ -486,6 +486,14 @@ body.product-page {
   -webkit-overflow-scrolling: touch;
 }
 
+.pm-shots img:first-child {
+  margin-left: auto;
+}
+
+.pm-shots img:last-child {
+  margin-right: auto;
+}
+
 .pm-shots img {
   flex: 0 0 auto;
   width: 220px;
@@ -659,6 +667,7 @@ html[lang="tr"] .appstore-badge__en {
 
 .pm-cta {
   margin: 28px 0 0;
+  justify-content: center;
 }
 
 .showcase__cta--soon {
