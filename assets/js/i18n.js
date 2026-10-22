@@ -3,6 +3,7 @@
     en: {
       tag1: 'Community<br />Builder',
       tag2: 'Creative<br />Head',
+      tagMaker: 'Maker',
       bio1: "I'm Armağan. I make video series about the random thoughts and things I get stuck on, and somehow that's how I've ended up existing on the internet.",
       bio2: "I guess you could say I'm somewhere between a creative and an entrepreneur. The things I work on tend to change all the time, so if you run into me at different points in life, I'm probably obsessing over something completely different each time.",
       bio3: 'Right now, I\'m running NotWork, a networking event, and still posting my video series on <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener">Instagram</a> whenever another thought decides to take up space in my head.',
@@ -67,6 +68,7 @@
     tr: {
       tag1: 'Topluluk<br />Kurucusu',
       tag2: 'Yaratıcı<br />Direktör',
+      tagMaker: 'Üretici',
       bio1: 'Ben Armağan. Aklıma takılan rastgele düşünceler hakkında video serileri çekiyorum, ve nasıl olduysa böyle internette var olmaya başladım.',
       bio2: 'Kendimi bir kreatif ile bir girişimci arasında bir yerde tanımlayabilirim sanırım. Üzerinde çalıştığım şeyler sürekli değişiyor, o yüzden hayatın farklı zamanlarında karşıma çıkarsan muhtemelen her seferinde tamamen farklı bir şeye kafayı takmış olurum.',
       bio3: 'Şu anda bir networking etkinliği olan NotWork’ü yürütüyorum, ve kafamda yer kaplayan yeni bir düşünce olduğu her seferinde <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener">Instagram</a>’da video serilerimi paylaşmaya devam ediyorum.',
