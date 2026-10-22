@@ -529,8 +529,8 @@ html[lang="tr"] .pm-shots--en {
 }
 
 .showcase__heading {
-  font-family: 'Armi', 'Times New Roman', Times, serif;
-  font-style: italic;
+  font-family: 'Armiell', cursive;
+  font-style: normal;
   font-weight: normal;
   font-size: clamp(28px, 3vw, 42px);
   margin: 0 0 32px;
@@ -605,6 +605,15 @@ html[lang="tr"] .pm-shots--en {
 
 .showcase__badge {
   margin: 0 0 24px;
+}
+
+.showcase__badge,
+.pm-cta,
+.hero__app-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
 }
 
 /* official App Store badge — keep Apple's artwork unaltered, min height 40px,
