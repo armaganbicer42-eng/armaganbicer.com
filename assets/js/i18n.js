@@ -68,7 +68,7 @@
     tr: {
       tag1: 'Topluluk<br />Kurucusu',
       tag2: 'Yaratıcı<br />Direktör',
-      tagMaker: 'Üretici',
+      tagMaker: 'Maker',
       bio1: 'Ben Armağan. Aklıma takılan rastgele düşünceler hakkında video serileri çekiyorum, ve nasıl olduysa böyle internette var olmaya başladım.',
       bio2: 'Kendimi bir kreatif ile bir girişimci arasında bir yerde tanımlayabilirim sanırım. Üzerinde çalıştığım şeyler sürekli değişiyor, o yüzden hayatın farklı zamanlarında karşıma çıkarsan muhtemelen her seferinde tamamen farklı bir şeye kafayı takmış olurum.',
       bio3: 'Şu anda bir networking etkinliği olan NotWork’ü yürütüyorum, ve kafamda yer kaplayan yeni bir düşünce olduğu her seferinde <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener">Instagram</a>’da video serilerimi paylaşmaya devam ediyorum.',
