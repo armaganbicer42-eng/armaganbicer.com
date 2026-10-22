@@ -1,14 +1,15 @@
 @font-face {
-  font-family: 'SwellTR';
-  src: url('../../assets/fonts/SwellTR-Regular.otf') format('opentype');
+  font-family: 'Armiell';
+  src: url('../../assets/fonts/Armiell-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
+
 @font-face {
-  font-family: 'Times New Roman';
-  src: url('../../assets/fonts/Times New Roman Italic.ttf') format('truetype');
+  font-family: 'Armi';
+  src: url('../../assets/fonts/Armi-Regular.ttf') format('truetype');
   font-weight: normal;
-  font-style: italic;
+  font-style: normal;
 }
 
 * { box-sizing: border-box; }
@@ -20,7 +21,7 @@ html, body {
   overflow: hidden;
   background: #fff;
   color: #111;
-  font-family: 'SwellTR', 'Times New Roman', Times, serif;
+  font-family: 'Armiell', 'Armi', 'Times New Roman', Times, serif;
   -webkit-font-smoothing: antialiased;
   touch-action: manipulation;
 }
@@ -141,8 +142,8 @@ html, body {
 
 .bubble__text {
   position: relative;
-  font-family: 'Times New Roman', Times, serif;
-  font-style: italic;
+  font-family: 'Armi', 'Times New Roman', Times, serif;
+  font-style: normal;
   font-size: 12pt;                 /* fixed — does not grow with the task */
   line-height: 1.2;
   max-width: 78%;
@@ -180,8 +181,8 @@ html, body {
 .bubble__editor {
   position: relative;
   outline: none;
-  font-family: 'Times New Roman', Times, serif;
-  font-style: italic;
+  font-family: 'Armi', 'Times New Roman', Times, serif;
+  font-style: normal;
   font-size: 12pt;                 /* matches the committed task text */
   line-height: 1.2;
   min-width: 8px;
@@ -333,8 +334,8 @@ html, body {
   max-width: 54%;
   margin: 0;
   text-align: right;
-  font-family: 'Times New Roman', Times, serif;
-  font-style: italic;
+  font-family: 'Armi', 'Times New Roman', Times, serif;
+  font-style: normal;
   font-size: 12.5px;
   line-height: 1.4;
   color: #8b8b8b;
@@ -492,11 +493,7 @@ body.pp-locked { overflow: hidden; }
   flex-direction: column;
   background: #fff;
   color: #141414;
-  /* Deliberately NOT naming "Times New Roman": the app registers an
-     italic-only @font-face under that exact name, so a literal reference can
-     render the whole panel in italic. "Times" (Apple) / serif (= Times New
-     Roman on Windows) / Liberation Serif give an upright Times face everywhere. */
-  font-family: Times, "Liberation Serif", "Nimbus Roman", serif;
+  font-family: 'Armi', 'Times New Roman', Times, serif;
 }
 .profile-panel,
 .profile-panel * { font-style: normal; font-synthesis: none; }
