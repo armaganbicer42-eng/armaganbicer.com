@@ -1,12 +1,12 @@
 (function () {
   var translations = {
     en: {
-      tag1: 'Community<br />Builder',
+      tag1: 'Systems<br />Designer',
       tag2: 'Creative<br />Head',
       tagMaker: 'Maker',
       bio1: "I'm Armağan. I make video series about the random thoughts and things I get stuck on, and somehow that's how I've ended up existing on the internet.",
       bio2: "I guess you could say I'm somewhere between a creative and an entrepreneur. The things I work on tend to change all the time, so if you run into me at different points in life, I'm probably obsessing over something completely different each time.",
-      bio3: 'Right now, I\'m running NotWork, a networking event, and still posting my video series on <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener">Instagram</a> whenever another thought decides to take up space in my head.',
+      bio3: 'Right now, I design systems for businesses and people &mdash; workflows, custom tools and small habits that make work run lighter and life easier to manage. I\'m also running NotWork, a networking event, and still posting my video series on <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener">Instagram</a> whenever another thought decides to take up space in my head.',
       more: "See what I've been up to &rarr;",
       shopHeading: "Couldn't find it, so I made it",
       item1Name: 'Chill Wall Lamp',
@@ -66,12 +66,12 @@
       pmSupport: 'Support'
     },
     tr: {
-      tag1: 'Topluluk<br />Kurucusu',
+      tag1: 'Sistem<br />Tasarımcısı',
       tag2: 'Yaratıcı<br />Direktör',
       tagMaker: 'Maker',
       bio1: 'Ben Armağan. Aklıma takılan rastgele düşünceler hakkında video serileri çekiyorum, ve nasıl olduysa böyle internette var olmaya başladım.',
       bio2: 'Kendimi bir kreatif ile bir girişimci arasında bir yerde tanımlayabilirim sanırım. Üzerinde çalıştığım şeyler sürekli değişiyor, o yüzden hayatın farklı zamanlarında karşıma çıkarsan muhtemelen her seferinde tamamen farklı bir şeye kafayı takmış olurum.',
-      bio3: 'Şu anda bir networking etkinliği olan NotWork’ü yürütüyorum, ve kafamda yer kaplayan yeni bir düşünce olduğu her seferinde <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener">Instagram</a>’da video serilerimi paylaşmaya devam ediyorum.',
+      bio3: 'Şu anda işletmeler ve insanlar için sistemler tasarlıyorum &mdash; işi hafifleten iş akışları, özel araçlar ve hayatı yönetmeyi kolaylaştıran küçük alışkanlıklar. Bir yandan da bir networking etkinliği olan NotWork’ü yürütüyorum, ve kafamda yer kaplayan yeni bir düşünce olduğu her seferinde <a href="https://www.instagram.com/armmagan/" target="_blank" rel="noopener">Instagram</a>’da video serilerimi paylaşmaya devam ediyorum.',
       more: 'Neler yaptığıma göz at &rarr;',
       shopHeading: 'Neden yok diyip yaptığım şeyler',
       item1Name: 'Chill Duvar Lambası',
