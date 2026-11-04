@@ -595,6 +595,18 @@ html[lang="tr"] .pm-shots--en {
   text-decoration: underline;
 }
 
+.update-item__head + .pm-list {
+  margin-top: 14px;
+}
+
+.showcase__link {
+  display: block;
+  margin-top: 16px;
+  font-size: 14px;
+  text-decoration: underline;
+  opacity: 0.7;
+}
+
 .showcase__col--app {
   display: block;
 }
